@@ -38,13 +38,15 @@
             line-height: 1.6;
         }
 
-        /* ===== PARTICLE CANVAS ===== */
-        #particles {
+        /* ===== STATIC VIGNETTE (replaces old ambient particle canvas) ===== */
+        .bg-vignette {
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            inset: 0;
             z-index: 0;
             pointer-events: none;
+            background:
+                radial-gradient(ellipse at 50% 30%, rgba(0,255,65,0.04) 0%, transparent 55%),
+                radial-gradient(ellipse at center, transparent 0%, transparent 55%, rgba(0,0,0,0.55) 100%);
         }
 
         /* ===== GRID OVERLAY ===== */
@@ -775,8 +777,8 @@
 </head>
 <body>
 
-<canvas id="particles"></canvas>
 <div class="grid-overlay"></div>
+<div class="bg-vignette"></div>
 
 <!-- ===== HERO ===== -->
 <section class="hero" data-mood="neon">
@@ -1170,115 +1172,9 @@
 </footer>
 
 <script>
-// ===== PARTICLE SYSTEM =====
-(function() {
-    const canvas = document.getElementById('particles');
-    const ctx = canvas.getContext('2d');
-    let w, h, particles = [];
-    const PARTICLE_COUNT = 60;
-    const CONNECTION_DIST = 150;
-
-    function resize() {
-        w = canvas.width = window.innerWidth;
-        h = canvas.height = window.innerHeight;
-    }
-    resize();
-    window.addEventListener('resize', resize);
-
-    function Particle() {
-        this.x = Math.random() * w;
-        this.y = Math.random() * h;
-        this.vx = (Math.random() - 0.5) * 0.4;
-        this.vy = (Math.random() - 0.5) * 0.4;
-        this.r = Math.random() * 1.5 + 0.5;
-    }
-
-    for (let i = 0; i < PARTICLE_COUNT; i++) particles.push(new Particle());
-
-    let mouseX = w / 2, mouseY = h / 2;
-    let trail = [];
-    window.addEventListener('mousemove', e => {
-        mouseX = e.clientX; mouseY = e.clientY;
-        trail.push({ x: e.clientX, y: e.clientY, age: 0 });
-        if (trail.length > 20) trail.shift();
-    });
-
-    // Mood color system
-    let particleRGB = [0, 255, 65];
-    let targetRGB = [0, 255, 65];
-
-    function lerpColor(from, to, t) {
-        return from.map((v, i) => Math.round(v + (to[i] - v) * t));
-    }
-
-    const MOOD_COLORS = {
-        neon:   [0, 255, 65],
-        cyan:   [0, 229, 255],
-        purple: [191, 148, 255],
-        gold:   [255, 215, 0],
-        orange: [255, 170, 0]
-    };
-
-    function setMood(mood) {
-        targetRGB = MOOD_COLORS[mood] || MOOD_COLORS.neon;
-    }
-
-    function draw() {
-        // Lerp toward target color
-        particleRGB = lerpColor(particleRGB, targetRGB, 0.02);
-
-        ctx.clearRect(0, 0, w, h);
-
-        // Trail render (behind particles)
-        const [r, g, b] = particleRGB;
-        for (let i = 0; i < trail.length; i++) {
-            trail[i].age++;
-            const alpha = (1 - trail[i].age / 20) * 0.5;
-            if (alpha <= 0) continue;
-            ctx.beginPath();
-            ctx.arc(trail[i].x, trail[i].y, 2.5, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
-            ctx.fill();
-        }
-        trail = trail.filter(t => t.age < 20);
-
-        for (let i = 0; i < particles.length; i++) {
-            for (let j = i + 1; j < particles.length; j++) {
-                const dx = particles[i].x - particles[j].x;
-                const dy = particles[i].y - particles[j].y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < CONNECTION_DIST) {
-                    ctx.beginPath();
-                    ctx.moveTo(particles[i].x, particles[i].y);
-                    ctx.lineTo(particles[j].x, particles[j].y);
-                    const alpha = (1 - dist / CONNECTION_DIST) * 0.15;
-                    ctx.strokeStyle = `rgba(${r},${g},${b},${alpha})`;
-                    ctx.lineWidth = 0.5;
-                    ctx.stroke();
-                }
-            }
-        }
-
-        for (let p of particles) {
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(${r},${g},${b},0.4)`;
-            ctx.fill();
-
-            p.vx += (mouseX - p.x) * 0.00003;
-            p.vy += (mouseY - p.y) * 0.00003;
-            p.vx *= 0.98;
-            p.vy *= 0.98;
-            p.x += p.vx;
-            p.y += p.vy;
-            if (p.x < 0 || p.x > w) p.vx *= -1;
-            if (p.y < 0 || p.y > h) p.vy *= -1;
-        }
-
-        requestAnimationFrame(draw);
-    }
-    draw();
-})();
+// Particle network removed — was the noisy ambient bg effect Brody hated.
+// setMood() kept as a no-op so the mood-observer below doesn't throw.
+function setMood() { /* no-op */ }
 
 // ===== COUNTER ANIMATION =====
 function animateCounters() {

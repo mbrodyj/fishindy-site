@@ -5,7 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CASTNET // ANGLER ONBOARDING</title>
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -29,9 +31,9 @@
             --text: #efeff1;
             --text-dim: #adadb8;
             --text-bright: #ffffff;
-            --font-mono: 'Share Tech Mono', monospace;
-            --font-display: 'Orbitron', sans-serif;
-            --font-body: 'Inter', -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+            --font-display: 'Orbitron', 'Inter', sans-serif;
+            --font-body: 'Inter', -apple-system, system-ui, 'Segoe UI', sans-serif;
             --radius: 12px;
             --touch-min: 44px;
         }
@@ -81,22 +83,22 @@
         }
 
         .hero-logo {
-            font-family: var(--font-display);
-            font-size: 2.8em;
-            font-weight: 900;
-            letter-spacing: 6px;
-            color: var(--neon);
-            text-shadow: 0 0 20px var(--neon-glow), 0 0 40px var(--neon-glow), 0 0 80px rgba(0,255,65,0.15);
+            display: inline-block;
+            max-width: min(420px, 72vw);
+            width: auto;
+            height: auto;
+            filter: drop-shadow(0 0 22px var(--neon-glow)) drop-shadow(0 0 48px rgba(0,255,65,0.18));
             animation: flicker 4s infinite;
         }
 
         .hero-sub {
-            font-family: var(--font-mono);
-            font-size: 0.85em;
-            letter-spacing: 6px;
+            font-family: var(--font-display);
+            font-size: 0.72em;
+            letter-spacing: 5px;
             color: var(--text-dim);
-            margin-top: 8px;
+            margin-top: 14px;
             text-transform: uppercase;
+            font-weight: 500;
         }
 
         .hero-tagline {
@@ -170,98 +172,6 @@
             color: var(--text-dim);
             font-size: 0.85em;
             line-height: 1.5;
-        }
-
-        /* ===== FISHING CHAOS INTEGRATION BANNER ===== */
-        .fc-integration {
-            margin: 25px 0;
-            border: 2px solid var(--cyan);
-            border-radius: var(--radius);
-            background: linear-gradient(135deg, rgba(0,229,255,0.06) 0%, rgba(0,255,65,0.04) 50%, rgba(0,229,255,0.06) 100%);
-            overflow: hidden;
-            position: relative;
-        }
-        .fc-integration::before {
-            content: 'INTEGRATED';
-            position: absolute;
-            top: 12px;
-            right: -28px;
-            background: var(--cyan);
-            color: var(--bg-deep);
-            font-family: var(--font-display);
-            font-size: 0.55em;
-            font-weight: 900;
-            letter-spacing: 2px;
-            padding: 4px 35px;
-            transform: rotate(35deg);
-            z-index: 2;
-        }
-        .fc-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 20px 20px 0;
-        }
-        .fc-logo-area {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .fc-x {
-            font-family: var(--font-display);
-            font-size: 0.7em;
-            color: var(--text-dim);
-            letter-spacing: 2px;
-        }
-        .fc-brand {
-            font-family: var(--font-display);
-            font-size: 1.1em;
-            font-weight: 900;
-            letter-spacing: 3px;
-        }
-        .fc-brand .fc-fishing { color: var(--cyan); }
-        .fc-brand .fc-chaos { color: var(--neon); }
-        .fc-tagline {
-            color: var(--text-dim);
-            font-size: 0.8em;
-            padding: 6px 20px 0;
-            font-style: italic;
-        }
-        .fc-features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 12px;
-            padding: 18px 20px 20px;
-        }
-        .fc-feat {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            padding: 10px 12px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 8px;
-            border: 1px solid rgba(0,229,255,0.15);
-        }
-        .fc-feat-icon {
-            font-size: 1.3em;
-            flex-shrink: 0;
-            margin-top: 1px;
-        }
-        .fc-feat-text {
-            display: flex;
-            flex-direction: column;
-        }
-        .fc-feat-name {
-            font-family: var(--font-display);
-            font-size: 0.65em;
-            letter-spacing: 1.5px;
-            color: var(--cyan);
-            margin-bottom: 3px;
-        }
-        .fc-feat-desc {
-            color: var(--text-dim);
-            font-size: 0.78em;
-            line-height: 1.4;
         }
 
         /* ===== SECTION HEADERS ===== */
@@ -1011,6 +921,84 @@
             0%   { width: 0; height: 0; opacity: 1; }
             100% { width: 80px; height: 80px; opacity: 0; }
         }
+
+        /* ===== HYPE TOASTS — mid-flow salesy vignettes ===== */
+        #hype-toast {
+            position: fixed;
+            right: 18px;
+            bottom: 18px;
+            z-index: 9999;
+            max-width: 340px;
+            background: linear-gradient(145deg, rgba(10,10,14,0.96) 0%, rgba(14,20,14,0.96) 100%);
+            border: 1px solid rgba(0,255,65,0.35);
+            border-left: 3px solid var(--neon);
+            border-radius: 6px;
+            padding: 14px 16px 13px;
+            color: var(--text);
+            font-family: var(--font-body);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 24px rgba(0,255,65,0.08);
+            backdrop-filter: blur(10px);
+            transform: translateX(120%);
+            opacity: 0;
+            transition: transform 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2), opacity 0.35s ease;
+            pointer-events: none;
+        }
+        #hype-toast.show {
+            transform: translateX(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .hype-label {
+            font-family: var(--font-display);
+            font-size: 0.55em;
+            letter-spacing: 3px;
+            color: var(--neon);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .hype-label .hype-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--neon); box-shadow: 0 0 6px var(--neon);
+            animation: hypePulse 1.4s ease-in-out infinite;
+        }
+        @keyframes hypePulse {
+            0%,100% { opacity: 1; }
+            50%     { opacity: 0.35; }
+        }
+        .hype-headline {
+            font-size: 0.92em;
+            font-weight: 600;
+            line-height: 1.35;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+        .hype-body {
+            font-size: 0.78em;
+            line-height: 1.5;
+            color: var(--text-dim);
+        }
+        .hype-body strong { color: var(--neon); font-weight: 600; }
+        .hype-close {
+            position: absolute;
+            top: 6px; right: 8px;
+            background: none; border: none;
+            color: var(--text-dim);
+            font-size: 1em;
+            cursor: pointer;
+            padding: 4px 6px;
+            line-height: 1;
+        }
+        .hype-close:hover { color: var(--neon); }
+        @media (max-width: 600px) {
+            #hype-toast {
+                right: 10px; left: 10px; max-width: none;
+                bottom: 14px;
+                padding: 12px 14px 11px;
+            }
+        }
     </style>
 </head>
 
@@ -1051,7 +1039,7 @@
                 <div class="form-row" style="margin-top:12px">
                     <div class="form-group" style="flex:2">
                         <label>Full Name <span class="required">*</span></label>
-                        <input type="text" id="nda-name" placeholder="Your full legal name" oninput="checkNdaGate()">
+                        <input type="text" id="nda-name" placeholder="Your full legal name" oninput="checkNdaGate()" onblur="pingNameEntered()">
                     </div>
                     <div class="form-group" style="flex:1">
                         <label>Date</label>
@@ -1067,12 +1055,19 @@
         </div>
     </div>
 
+    <!-- ===== HYPE TOAST (mid-flow salesy vignettes) ===== -->
+    <div id="hype-toast" role="status" aria-live="polite">
+        <button class="hype-close" onclick="hideHype()" aria-label="Close">&times;</button>
+        <div class="hype-label"><span class="hype-dot"></span><span id="hype-label-text">LIVE EXAMPLE</span></div>
+        <div class="hype-headline" id="hype-headline"></div>
+        <div class="hype-body" id="hype-body"></div>
+    </div>
+
     <div class="container">
         <!-- ===== HERO ===== -->
         <div class="hero">
-            <div class="hero-logo">CASTNET</div>
+            <img src="/assets/castnet_wordmark.png" alt="CastNET" class="hero-logo">
             <div class="hero-sub">Managed Livestream Production</div>
-            <p style="font-family:var(--font-mono); font-size:0.7em; letter-spacing:2px; color:var(--cyan); margin-top:8px;">IN PARTNERSHIP WITH FISHING CHAOS</p>
             <p class="hero-tagline">
                 Professional multi-camera livestreaming for tournament anglers.<br>
                 You fish. We handle everything else.
@@ -1100,48 +1095,6 @@
                 <div class="value-icon">&#127942;</div>
                 <div class="value-title">TOURNAMENT READY</div>
                 <div class="value-desc">Fish scoring, time markers, sponsor overlays, and live leaderboard integration</div>
-            </div>
-        </div>
-
-        <!-- ===== TOURNAMENT INTEGRATION ===== -->
-        <div class="fc-integration">
-            <div class="fc-header">
-                <div class="fc-logo-area">
-                    <span class="fc-brand"><span class="fc-fishing">CASTNET</span></span>
-                    <span class="fc-x">//</span>
-                    <span class="fc-brand"><span class="fc-chaos">TOURNAMENT OPS</span></span>
-                </div>
-            </div>
-            <div class="fc-tagline">Broadcast-grade production built for competitive fishing &mdash; from club events to the pro circuit.</div>
-            <div class="fc-features">
-                <div class="fc-feat">
-                    <div class="fc-feat-icon">&#127942;</div>
-                    <div class="fc-feat-text">
-                        <div class="fc-feat-name">LIVE FISH SCORING</div>
-                        <div class="fc-feat-desc">Log catches in real time from your phone &mdash; weights, species, timestamps &mdash; all on-stream</div>
-                    </div>
-                </div>
-                <div class="fc-feat">
-                    <div class="fc-feat-icon">&#128250;</div>
-                    <div class="fc-feat-text">
-                        <div class="fc-feat-name">MULTI-ANGLER HUB</div>
-                        <div class="fc-feat-desc">Every angler's stream monitored from one dashboard &mdash; switch, clip, and manage all feeds</div>
-                    </div>
-                </div>
-                <div class="fc-feat">
-                    <div class="fc-feat-icon">&#128232;</div>
-                    <div class="fc-feat-text">
-                        <div class="fc-feat-name">CATCH VERIFICATION</div>
-                        <div class="fc-feat-desc">Video-backed catch logs with timestamps for accountability and replay</div>
-                    </div>
-                </div>
-                <div class="fc-feat">
-                    <div class="fc-feat-icon">&#128225;</div>
-                    <div class="fc-feat-text">
-                        <div class="fc-feat-name">REMOTE OPERATIONS</div>
-                        <div class="fc-feat-desc">Full control from anywhere &mdash; switch cameras, fire sponsor ads, restart streams from your phone</div>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -1178,27 +1131,18 @@
                 <ul class="welcome-bullets" id="welcome-bullets">
                     <li class="welcome-bullet" id="wb-0">
                         <span class="welcome-bullet-icon">&#127916;</span>
-                        <span class="welcome-bullet-text"><strong>Broadcast-grade livestreaming</strong> &mdash; up to 8 cameras, AI-switched, from anywhere on earth</span>
+                        <span class="welcome-bullet-text"><strong>Broadcast-grade livestream</strong> &mdash; up to 8 cameras, AI-switched</span>
                     </li>
                     <li class="welcome-bullet" id="wb-1">
-                        <span class="welcome-bullet-icon">&#127942;</span>
-                        <span class="welcome-bullet-text"><strong>Sponsor management on autopilot</strong> &mdash; obligation tracking, proof of placement, auto-rotation, recap reports</span>
+                        <span class="welcome-bullet-icon">&#128247;</span>
+                        <span class="welcome-bullet-text"><strong>Content delivered to you</strong> &mdash; clips + socials after every session</span>
                     </li>
                     <li class="welcome-bullet" id="wb-2">
-                        <span class="welcome-bullet-icon">&#128247;</span>
-                        <span class="welcome-bullet-text"><strong>Full content delivery pipeline</strong> &mdash; clips, social exports, analytics, drafts &mdash; generated after every session</span>
-                    </li>
-                    <li class="welcome-bullet" id="wb-3">
-                        <span class="welcome-bullet-icon">&#128752;</span>
-                        <span class="welcome-bullet-text"><strong>Rugged remote connectivity</strong> &mdash; Starlink, hotspot, cellular bonding. Built for places nothing else works.</span>
-                    </li>
-                    <li class="welcome-bullet" id="wb-4">
                         <span class="welcome-bullet-icon">&#129302;</span>
-                        <span class="welcome-bullet-text"><strong>AI that watches your whole operation</strong> &mdash; self-healing, voice-activated, learns your patterns, never sleeps</span>
+                        <span class="welcome-bullet-text"><strong>Always-on AI operator</strong> &mdash; self-healing, voice-controlled, never sleeps</span>
                     </li>
                 </ul>
-                <div class="welcome-more" id="welcome-more">+ GPS waypoint management, fish-pattern logging, and tournament electronics consulting included at higher tiers</div>
-                <div class="welcome-excl" id="welcome-excl">Access is limited. Slots fill fast. You're looking at this because you're the right fit.</div>
+                <div class="welcome-excl" id="welcome-excl">You're seeing this because you're the right fit. Access is limited.</div>
                 <button class="btn btn-primary" id="btn-claim" onclick="claimSpot()">CLAIM YOUR SPOT &rarr;</button>
             </div>
         </div>
@@ -1791,15 +1735,15 @@
         function startWelcomePhase3() {
             const content = document.getElementById('welcome-content');
             content.classList.add('show');
-            for (let i = 0; i < 5; i++) {
+            for (let i = 0; i < 3; i++) {
                 setTimeout(() => {
-                    document.getElementById('wb-' + i).classList.add('show');
+                    const el = document.getElementById('wb-' + i);
+                    if (el) el.classList.add('show');
                     playTone(1200 + i * 80, 0.03, 'square', 0.06);
-                }, i * 200);
+                }, i * 220);
             }
-            setTimeout(() => document.getElementById('welcome-more').classList.add('show'), 1200);
-            setTimeout(() => document.getElementById('welcome-excl').classList.add('show'), 1500);
-            setTimeout(() => document.getElementById('btn-claim').classList.add('show'), 1900);
+            setTimeout(() => document.getElementById('welcome-excl').classList.add('show'), 950);
+            setTimeout(() => document.getElementById('btn-claim').classList.add('show'), 1300);
         }
 
         function showWelcomeMoment() {
@@ -1907,9 +1851,24 @@
             const name = document.getElementById('nda-name').value.trim().length > 2;
             document.getElementById('nda-proceed').disabled = !(agreed && name);
         }
+        let _namePinged = false;
+        function pingNameEntered() {
+            if (_namePinged) return;
+            const n = document.getElementById('nda-name').value.trim();
+            if (n.length < 3) return;
+            _namePinged = true;
+            try {
+                fetch('/api/onboard/name-entered', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ name: n })
+                }).catch(() => { _namePinged = false; });
+            } catch(e) { _namePinged = false; }
+        }
         function dismissNda() {
             ndaAccepted = true;
             welcomeName = document.getElementById('nda-name').value.trim() || 'ANGLER';
+            pingNameEntered(); // safety net — also fire on agree-proceed
             try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
             document.getElementById('nda-gate').classList.add('dismissed');
             setTimeout(showWelcomeMoment, 300);
@@ -1970,6 +1929,53 @@
             }
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // Fire a hype toast for this page transition
+            setTimeout(() => fireHypeForPage(n), 900);
+        }
+
+        // ===== HYPE TOAST SYSTEM =====
+        let _hypeTimer = null;
+        let _hypeShown = {};
+        const HYPE_SCENES = {
+            2: {
+                label: "PICTURE THIS",
+                headline: "Hour 3. Your co-angler just boated a 6lb kicker.",
+                body: "Your phone pings. Tap once &rarr; camera flips to the net shot. Tap again &rarr; <strong>sponsor logo fires on-stream</strong>. Tap again &rarr; 15-sec clip saved to your Highlights folder. You never stopped fishing."
+            },
+            3: {
+                label: "REAL EXAMPLE",
+                headline: "While you sleep, the system works.",
+                body: "You hit the dock. CastNET auto-generates: <strong>8 short-form clips</strong>, a YouTube thumbnail, an Instagram carousel, a sponsor recap PDF, and a post-game analytics report. Ready in your inbox by morning."
+            },
+            4: {
+                label: "WHAT HAPPENS AT 6AM",
+                headline: "Your sponsors will notice. Fast.",
+                body: "Every logo placement is logged with a timestamp + screenshot. Every mention, tracked. Your next renewal meeting starts with <strong>actual receipts</strong>, not a pitch deck of guesses."
+            }
+        };
+        function fireHypeForPage(n) {
+            const scene = HYPE_SCENES[n];
+            if (!scene) return;
+            if (_hypeShown[n]) return;
+            _hypeShown[n] = true;
+            showHype(scene.label, scene.headline, scene.body, 8500);
+        }
+        function showHype(label, headline, body, durationMs) {
+            const toast = document.getElementById('hype-toast');
+            if (!toast) return;
+            document.getElementById('hype-label-text').textContent = label || 'LIVE EXAMPLE';
+            document.getElementById('hype-headline').textContent = headline || '';
+            document.getElementById('hype-body').innerHTML = body || '';
+            toast.classList.add('show');
+            try { playTone(1400, 0.04, 'sine', 0.05); } catch(e) {}
+            if (_hypeTimer) clearTimeout(_hypeTimer);
+            _hypeTimer = setTimeout(() => hideHype(), durationMs || 8000);
+        }
+        function hideHype() {
+            const toast = document.getElementById('hype-toast');
+            if (toast) toast.classList.remove('show');
+            if (_hypeTimer) { clearTimeout(_hypeTimer); _hypeTimer = null; }
         }
 
         // ===== SIGNATURE PAD =====

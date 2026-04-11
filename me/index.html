@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>fishindy</title>
+<meta name="description" content="">
+<meta name="robots" content="index,follow">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+
+<!-- OG -->
+<meta property="og:title" content="fishindy">
+<meta property="og:description" content="">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://fishindy.com">
+<meta property="og:image" content="https://fishindy.com/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    --bg: #05070a;
+    --ink: #d8dde4;
+    --ink-dim: #5a6472;
+    --ink-faint: #2a323c;
+    --accent: #00ff88;
+    --accent-dim: rgba(0,255,136,0.35);
+    --danger: #ff3355;
+    --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: 'Inter', -apple-system, system-ui, sans-serif;
+}
+
+html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 15px;
+    overflow: hidden;
+    cursor: crosshair;
+}
+
+/* ===== Scanline + grain overlay ===== */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+        repeating-linear-gradient(
+            0deg,
+            rgba(255,255,255,0.012) 0,
+            rgba(255,255,255,0.012) 1px,
+            transparent 1px,
+            transparent 3px
+        );
+    pointer-events: none;
+    z-index: 50;
+    mix-blend-mode: overlay;
+}
+
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(
+        ellipse at center,
+        transparent 0%,
+        transparent 45%,
+        rgba(0,0,0,0.65) 100%
+    );
+    pointer-events: none;
+    z-index: 51;
+}
+
+/* ===== Starfield / particles ===== */
+#stars {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+}
+
+/* ===== Main stage ===== */
+.stage {
+    position: relative;
+    height: 100%;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    z-index: 10;
+}
+
+/* ===== Top bar ===== */
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 22px 30px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+}
+.topbar .logo {
+    color: var(--ink);
+    font-weight: 700;
+}
+.topbar .logo .dot {
+    color: var(--accent);
+    animation: blink 1.6s steps(2) infinite;
+}
+.topbar .status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.topbar .status::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+@keyframes blink {
+    50% { opacity: 0; }
+}
+
+/* ===== Center content ===== */
+.center {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 0 24px;
+    position: relative;
+}
+
+.prompt {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+    margin-bottom: 26px;
+}
+.prompt .caret {
+    display: inline-block;
+    width: 8px;
+    height: 12px;
+    background: var(--accent);
+    vertical-align: middle;
+    margin-left: 4px;
+    animation: blink 1s steps(2) infinite;
+}
+
+.title {
+    font-family: var(--sans);
+    font-size: clamp(2.2em, 6vw, 4.5em);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 0.95;
+    color: var(--ink);
+    max-width: 900px;
+    margin-bottom: 22px;
+}
+.title .stroke {
+    -webkit-text-stroke: 1px var(--ink);
+    color: transparent;
+}
+.title .glow {
+    color: var(--accent);
+    text-shadow: 0 0 30px var(--accent-dim);
+}
+
+.subtitle {
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+    max-width: 580px;
+    line-height: 1.8;
+    margin-bottom: 50px;
+}
+
+/* ===== Cryptic quotes ===== */
+.rotator {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 1px;
+    min-height: 1.6em;
+    max-width: 620px;
+    margin-bottom: 50px;
+    opacity: 0.88;
+}
+.rotator .bracket { color: var(--ink-dim); }
+
+/* ===== Hidden nodes (cryptic links) ===== */
+.nodes {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.node {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    border: 1px solid var(--ink-faint);
+    background: rgba(255,255,255,0.015);
+    padding: 10px 18px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    position: relative;
+    cursor: pointer;
+}
+.node:hover {
+    color: var(--accent);
+    border-color: var(--accent-dim);
+    background: rgba(0,255,136,0.04);
+    box-shadow: 0 0 20px rgba(0,255,136,0.08);
+}
+.node::before {
+    content: '>';
+    margin-right: 8px;
+    color: var(--ink-faint);
+    transition: color 0.2s;
+}
+.node:hover::before { color: var(--accent); }
+
+.node[data-locked]::after {
+    content: '[LOCKED]';
+    position: absolute;
+    top: -8px;
+    right: -6px;
+    font-size: 7px;
+    background: var(--bg);
+    color: var(--danger);
+    padding: 2px 5px;
+    border: 1px solid var(--danger);
+    letter-spacing: 1px;
+}
+
+/* ===== Bottom coordinates ===== */
+.coords {
+    display: flex;
+    justify-content: space-between;
+    padding: 22px 30px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+}
+.coords .hint { color: var(--ink-dim); }
+
+/* ===== Modal (locked node) ===== */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.88);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    padding: 30px;
+}
+.modal.show { display: flex; }
+.modal-box {
+    max-width: 440px;
+    border: 1px solid var(--accent-dim);
+    background: rgba(5,7,10,0.95);
+    padding: 32px 30px;
+    font-family: var(--mono);
+    position: relative;
+    box-shadow: 0 0 60px rgba(0,255,136,0.1);
+}
+.modal-box .x {
+    position: absolute;
+    top: 10px; right: 14px;
+    color: var(--ink-dim);
+    cursor: pointer;
+    font-size: 16px;
+    background: none;
+    border: none;
+}
+.modal-box .x:hover { color: var(--accent); }
+.modal-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--danger);
+    margin-bottom: 12px;
+}
+.modal-title {
+    font-family: var(--sans);
+    font-size: 1.4em;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 10px;
+}
+.modal-body {
+    font-size: 12px;
+    color: var(--ink-dim);
+    line-height: 1.7;
+    letter-spacing: 0.5px;
+}
+.modal-body .hl { color: var(--accent); }
+.modal-body code {
+    display: block;
+    margin-top: 16px;
+    padding: 10px 12px;
+    background: rgba(0,0,0,0.5);
+    border-left: 2px solid var(--accent);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 1px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 640px) {
+    .topbar, .coords { padding: 16px 18px; font-size: 9px; }
+    .nodes { gap: 8px; }
+    .node { padding: 9px 13px; font-size: 9px; }
+    .rotator { font-size: 11px; padding: 0 16px; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="stars"></canvas>
+
+<main class="stage">
+
+    <header class="topbar">
+        <div class="logo">FISH<span class="dot">_</span>INDY</div>
+        <div class="status" id="status-line">NODE ACTIVE</div>
+    </header>
+
+    <section class="center">
+        <div class="prompt" id="prompt-line">&gt; <span id="prompt-text">IDENTIFIER LOADED</span><span class="caret"></span></div>
+
+        <h1 class="title">
+            <span class="stroke">we don't build</span><br>
+            <span class="glow">a brand.</span><br>
+            <span class="stroke">we build</span> a signal.
+        </h1>
+
+        <p class="subtitle" id="subtitle-line">Indianapolis &middot; On the water &middot; Built in the dark</p>
+
+        <div class="rotator" id="rotator">
+            <span class="bracket">//</span> initializing transmission...
+        </div>
+
+        <nav class="nodes">
+            <a class="node" href="https://fishindy.com/marketing" target="_blank" rel="noopener">CASTNET</a>
+            <a class="node" href="https://instagram.com/fish_indy" target="_blank" rel="noopener">SIGNAL</a>
+            <a class="node" href="#" data-locked onclick="openLocked('family'); return false;">FAMILY</a>
+            <a class="node" href="#" data-locked onclick="openLocked('archive'); return false;">ARCHIVE</a>
+        </nav>
+    </section>
+
+    <footer class="coords">
+        <div id="coords-line">LAT 39.7684&deg; N &middot; LON 86.1581&deg; W</div>
+        <div class="hint">type <span style="color:var(--accent)">'help'</span> to go deeper</div>
+    </footer>
+
+</main>
+
+<!-- ===== Locked modal ===== -->
+<div class="modal" id="modal" onclick="if(event.target===this)closeLocked()">
+    <div class="modal-box">
+        <button class="x" onclick="closeLocked()">&times;</button>
+        <div class="modal-label" id="m-label">ACCESS RESTRICTED</div>
+        <div class="modal-title" id="m-title">FAMILY</div>
+        <div class="modal-body" id="m-body">
+            <p>This wing isn't open yet.</p>
+            <p style="margin-top:10px">The <span class="hl">family</span> node holds private archives, shared memories, and a few names only the people who belong there will recognize.</p>
+            <p style="margin-top:10px">Come back soon.</p>
+            <code>&gt; fingerprint required &middot; not yet issued</code>
+        </div>
+    </div>
+</div>
+
+<script>
+// =====================================================================
+// PERSONALIZATION ENGINE
+// Uses every signal we can read client-side: time, visit count, referrer,
+// device, timezone, language, IP (via free geo API if reachable).
+// If any signal is missing, the fallback copy is written to still feel
+// badass — never "welcome, anonymous user".
+// =====================================================================
+const CTX = (function buildContext() {
+    const now = new Date();
+    const hr = now.getHours();
+    let period, timeLine;
+    if (hr < 5)       { period = 'deep_night';  timeLine = "// 4am. you're up because you have to be."; }
+    else if (hr < 8)  { period = 'dawn';        timeLine = "// dawn. this is the launch window."; }
+    else if (hr < 11) { period = 'morning';     timeLine = "// mid-morning. already behind schedule."; }
+    else if (hr < 14) { period = 'midday';      timeLine = "// noon. everybody else is at lunch."; }
+    else if (hr < 17) { period = 'afternoon';   timeLine = "// wind's up. water's stained."; }
+    else if (hr < 20) { period = 'golden';      timeLine = "// golden hour. it's not about the photo."; }
+    else if (hr < 23) { period = 'evening';     timeLine = "// post-dinner. the best stories start now."; }
+    else              { period = 'late_night';  timeLine = "// late. the feed is quiet. good."; }
+
+    // Referrer classification
+    const ref = (document.referrer || '').toLowerCase();
+    let source = 'direct', sourceLine = "// you typed the address. respect.";
+    if (ref.includes('instagram'))      { source='ig';       sourceLine = "// signal received from the gram."; }
+    else if (ref.includes('tiktok'))    { source='tt';       sourceLine = "// tiktok pipeline. welcome."; }
+    else if (ref.includes('x.com') || ref.includes('twitter')) { source='x'; sourceLine = "// routed in from x. keep moving."; }
+    else if (ref.includes('youtube'))   { source='yt';       sourceLine = "// youtube trail. you watched. you clicked."; }
+    else if (ref.includes('facebook') || ref.includes('fb.com')) { source='fb'; sourceLine = "// facebook funnel. rare these days."; }
+    else if (ref.includes('google') || ref.includes('bing') || ref.includes('duckduckgo')) {
+        source='search'; sourceLine = "// search brought you. interesting query.";
+    }
+    else if (ref.includes('castnet'))   { source='castnet';  sourceLine = "// routed through castnet. authorized."; }
+    else if (ref)                        { source='other';    sourceLine = "// referral chain: " + (new URL(ref).hostname || 'unknown'); }
+
+    // Visit count (localStorage — persists across sessions same device)
+    let visit = 1;
+    try {
+        visit = parseInt(localStorage.getItem('fi_visits') || '0', 10) + 1;
+        localStorage.setItem('fi_visits', String(visit));
+        if (!localStorage.getItem('fi_first_seen')) {
+            localStorage.setItem('fi_first_seen', String(Date.now()));
+        }
+    } catch(e) { visit = 1; }
+
+    let visitLine, statusLabel;
+    if (visit === 1)       { visitLine = "// first contact.";                       statusLabel = 'NODE ACTIVE'; }
+    else if (visit <= 3)   { visitLine = "// welcome back.";                        statusLabel = 'NODE RECOGNIZED'; }
+    else if (visit <= 9)   { visitLine = "// you keep coming back. noted.";         statusLabel = 'NODE RETURNING x' + visit; }
+    else if (visit <= 24)  { visitLine = "// you live here now.";                   statusLabel = 'TRUSTED NODE'; }
+    else                   { visitLine = "// " + visit + " visits. you're a ghost in my logs."; statusLabel = 'GHOST NODE'; }
+
+    // Device / viewport class
+    const isMobile = window.matchMedia && window.matchMedia('(max-width: 640px)').matches;
+    const deviceLine = isMobile
+        ? "// tiny screen. big energy."
+        : "// proper rig. proceed.";
+
+    // Timezone
+    let tz = 'unknown';
+    try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'unknown'; } catch(e){}
+    const homeZone = /Indiana|New_York|Chicago|Detroit/.test(tz);
+    const tzLine = homeZone
+        ? "// local node. home frequency."
+        : "// transmission from " + tz.replace(/_/g,' ') + ". range: international.";
+
+    // Session fingerprint — NOT identifying, just a stable-ish hex for flavor
+    let fp = '';
+    try {
+        const seed = (navigator.userAgent || '') + (navigator.language || '') + tz + screen.width + 'x' + screen.height;
+        let h = 0;
+        for (let i = 0; i < seed.length; i++) { h = ((h << 5) - h) + seed.charCodeAt(i); h |= 0; }
+        fp = Math.abs(h).toString(16).toUpperCase().padStart(6, '0').slice(0, 6);
+    } catch(e) { fp = 'XXXXXX'; }
+
+    // HH:MM local time for the status line
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    const clock = hh + ':' + mm;
+
+    return {
+        period, timeLine, source, sourceLine, visit, visitLine, statusLabel,
+        isMobile, deviceLine, tz, tzLine, fp, clock, geo: null
+    };
+})();
+
+// Paint the static context into the DOM immediately (no placeholder flash)
+(function paintStaticContext(){
+    const statusEl = document.getElementById('status-line');
+    if (statusEl) statusEl.textContent = CTX.statusLabel + ' · ' + CTX.clock + ' · ' + CTX.fp;
+
+    const promptEl = document.getElementById('prompt-text');
+    if (promptEl) {
+        // Rotate a few opening prompts keyed to context. No fallback filler —
+        // each of these reads badass on its own.
+        const prompts = [
+            "IDENTIFIER LOADED",
+            "CHANNEL OPEN",
+            "LINE CLEAR",
+            "NODE " + CTX.fp + " LINKED",
+            CTX.period === 'deep_night' ? "DARK MODE ACKNOWLEDGED" : "SIGNAL LOCKED"
+        ];
+        promptEl.textContent = prompts[CTX.visit % prompts.length];
+    }
+
+    const subEl = document.getElementById('subtitle-line');
+    if (subEl) {
+        // Context-varied subtitle. Every branch is honest flavor, never filler.
+        const subs = {
+            deep_night:  "4AM &middot; empty ramps &middot; the good hours",
+            dawn:        "Dawn launch &middot; on the water &middot; before the wind",
+            morning:     "Indianapolis &middot; on the water &middot; already moving",
+            midday:      "Indianapolis &middot; glare off the lake &middot; grind mode",
+            afternoon:   "Indianapolis &middot; wind and stain &middot; read the water",
+            golden:      "Golden hour &middot; no filter needed &middot; built in the light",
+            evening:     "After sunset &middot; on the water &middot; where the stories live",
+            late_night:  "Night shift &middot; feed is quiet &middot; signal is loud",
+        };
+        subEl.innerHTML = subs[CTX.period] || "Indianapolis &middot; On the water &middot; Built in the dark";
+    }
+})();
+
+// ===== Rotating cryptic messages — seeded from CTX =====
+const MESSAGES = [
+    CTX.timeLine,
+    CTX.sourceLine,
+    CTX.visitLine,
+    CTX.tzLine,
+    CTX.deviceLine,
+    "// the water keeps the receipts.",
+    "// you can't fake what sonar saw.",
+    "// the boat, the dog, the grind, the grandfather.",
+    "// most of this isn't for sale.",
+    "// signal &gt; noise. always.",
+    "// if you know, you know. if you don't, you will.",
+    "// built by someone who actually fishes.",
+    "// node " + CTX.fp + " &middot; visit " + CTX.visit + " &middot; " + CTX.clock
+];
+
+// Optional IP geolocation — free, no key, CORS-enabled. If it fails, we
+// silently stay on Indianapolis. No placeholder text, no "loading..." flash.
+(async function enrichGeo(){
+    try {
+        const ctrl = new AbortController();
+        setTimeout(() => ctrl.abort(), 2500);
+        const r = await fetch('https://ipapi.co/json/', { signal: ctrl.signal });
+        if (!r.ok) return;
+        const g = await r.json();
+        if (!g || !g.city) return;
+        CTX.geo = g;
+        // Update coords line with the viewer's actual coords (and city), cryptic style
+        const coords = document.getElementById('coords-line');
+        if (coords && typeof g.latitude === 'number' && typeof g.longitude === 'number') {
+            const lat = Math.abs(g.latitude).toFixed(4);
+            const lon = Math.abs(g.longitude).toFixed(4);
+            const ns = g.latitude >= 0 ? 'N' : 'S';
+            const ew = g.longitude >= 0 ? 'E' : 'W';
+            coords.innerHTML = 'LAT ' + lat + '&deg; ' + ns
+                + ' &middot; LON ' + lon + '&deg; ' + ew
+                + ' &middot; ' + (g.city || '').toUpperCase();
+        }
+        // Inject a geo-aware line into the rotator pool
+        const city = (g.city || '').toUpperCase();
+        const region = (g.region || '').toUpperCase();
+        if (city) {
+            MESSAGES.push("// pinging " + city + (region ? ', ' + region : '') + ". i see you.");
+        }
+        // If they're in Indy, call it out
+        if (city && /INDIANA|INDIANAPOLIS/i.test(city + ' ' + region)) {
+            MESSAGES.unshift("// local. we're probably on the same water.");
+        }
+    } catch(e) { /* silent — we already look fine without it */ }
+})();
+
+let mi = 0;
+const rotator = document.getElementById('rotator');
+
+function typeMessage(msg) {
+    rotator.textContent = '';
+    let i = 0;
+    const iv = setInterval(() => {
+        if (i >= msg.length) { clearInterval(iv); return; }
+        rotator.textContent += msg[i++];
+    }, 22);
+}
+
+function cycle() {
+    typeMessage(MESSAGES[mi]);
+    mi = (mi + 1) % MESSAGES.length;
+}
+
+setTimeout(() => { cycle(); setInterval(cycle, 5200); }, 700);
+
+// ===== Locked modal =====
+const LOCKED = {
+    family: {
+        label: 'ACCESS RESTRICTED',
+        title: 'FAMILY',
+        html: `
+            <p>This wing isn't open yet.</p>
+            <p style="margin-top:10px">The <span class="hl">family</span> node holds private archives, shared memories, and a few names only the people who belong there will recognize.</p>
+            <p style="margin-top:10px">Come back soon.</p>
+            <code>&gt; fingerprint required &middot; not yet issued</code>
+        `
+    },
+    archive: {
+        label: 'SEALED',
+        title: 'ARCHIVE',
+        html: `
+            <p>Old tournaments. Older stories. Photos that don't exist on social.</p>
+            <p style="margin-top:10px">The <span class="hl">archive</span> is staying offline until it's ready. It won't be pretty. It'll be real.</p>
+            <code>&gt; unlock &middot; pending</code>
+        `
+    }
+};
+function openLocked(key) {
+    const data = LOCKED[key];
+    if (!data) return;
+    document.getElementById('m-label').textContent = data.label;
+    document.getElementById('m-title').textContent = data.title;
+    document.getElementById('m-body').innerHTML = data.html;
+    document.getElementById('modal').classList.add('show');
+}
+function closeLocked() {
+    document.getElementById('modal').classList.remove('show');
+}
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeLocked();
+});
+
+// ===== Starfield / particle drift =====
+const canvas = document.getElementById('stars');
+const ctx = canvas.getContext('2d');
+let W, H, stars;
+
+function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    const count = Math.min(140, Math.floor((W * H) / 12000));
+    stars = [];
+    for (let i = 0; i < count; i++) {
+        stars.push({
+            x: Math.random() * W,
+            y: Math.random() * H,
+            r: Math.random() * 1.2 + 0.2,
+            vx: (Math.random() - 0.5) * 0.08,
+            vy: (Math.random() - 0.5) * 0.05,
+            a: Math.random() * 0.6 + 0.1
+        });
+    }
+}
+window.addEventListener('resize', resize);
+resize();
+
+function draw() {
+    ctx.clearRect(0, 0, W, H);
+    for (const s of stars) {
+        s.x += s.vx; s.y += s.vy;
+        if (s.x < 0) s.x = W; if (s.x > W) s.x = 0;
+        if (s.y < 0) s.y = H; if (s.y > H) s.y = 0;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0,255,136,${s.a * 0.55})`;
+        ctx.fill();
+    }
+    requestAnimationFrame(draw);
+}
+draw();
+
+// ===== Easter egg: type 'help' =====
+let buf = '';
+document.addEventListener('keydown', (e) => {
+    if (e.key.length !== 1) return;
+    buf = (buf + e.key.toLowerCase()).slice(-8);
+    if (buf.endsWith('help')) {
+        openLocked('archive');
+        buf = '';
+    }
+    if (buf.endsWith('family')) {
+        openLocked('family');
+        buf = '';
+    }
+});
+</script>
+
+</body>
+</html>
