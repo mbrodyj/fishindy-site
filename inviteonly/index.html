@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CastNET — Professional Tournament Livestreaming</title>
+    <meta name="description" content="CastNET is a fully managed livestream production platform for tournament bass fishing. Multi-camera, AI-powered, phone-controlled.">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --neon: #00ff41;
+            --neon-dim: #00cc33;
+            --neon-glow: rgba(0,255,65,0.3);
+            --cyan: #00e5ff;
+            --cyan-glow: rgba(0,229,255,0.15);
+            --purple: #bf94ff;
+            --gold: #ffd700;
+            --orange: #ffaa00;
+            --bg: #06060a;
+            --bg-card: rgba(14,14,20,0.85);
+            --text: #e0e0e8;
+            --text-dim: #8888a0;
+            --border: rgba(255,255,255,0.06);
+            --particle-color: 0,255,65;
+            --grid-tint: 0,255,65;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', -apple-system, sans-serif;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* ===== STATIC VIGNETTE (replaces old ambient particle canvas) ===== */
+        .bg-vignette {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(ellipse at 50% 30%, rgba(0,255,65,0.04) 0%, transparent 55%),
+                radial-gradient(ellipse at center, transparent 0%, transparent 55%, rgba(0,0,0,0.55) 100%);
+        }
+
+        /* ===== GRID OVERLAY ===== */
+        .grid-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background:
+                linear-gradient(rgba(var(--grid-tint),0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(var(--grid-tint),0.015) 1px, transparent 1px);
+            background-size: 60px 60px;
+            z-index: 0;
+            pointer-events: none;
+            animation: gridPulse 8s ease-in-out infinite;
+            transition: background 1.5s ease;
+        }
+        @keyframes gridPulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.8; }
+        }
+
+        /* ===== SECTIONS ===== */
+        section {
+            position: relative;
+            z-index: 1;
+            padding: 100px 20px;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* ===== HERO ===== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding-top: 0;
+        }
+        .hero-content { max-width: 800px; }
+
+        .hero-badge {
+            display: inline-block;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.65em;
+            letter-spacing: 5px;
+            color: var(--cyan);
+            border: 1px solid rgba(0,229,255,0.3);
+            padding: 6px 20px;
+            border-radius: 30px;
+            margin-bottom: 30px;
+            animation: fadeSlideUp 1s 0.2s both;
+        }
+
+        .hero-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(3em, 8vw, 6em);
+            font-weight: 900;
+            letter-spacing: 8px;
+            line-height: 1.1;
+            animation: fadeSlideUp 1s 0.4s both;
+        }
+        .hero-title .cast { color: #fff; }
+        .hero-title .net {
+            color: var(--neon);
+            text-shadow: 0 0 30px var(--neon-glow), 0 0 60px rgba(0,255,65,0.15);
+        }
+
+        .hero-sub {
+            font-size: clamp(1em, 2.5vw, 1.3em);
+            color: var(--text-dim);
+            margin-top: 20px;
+            font-weight: 300;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            animation: fadeSlideUp 1s 0.6s both;
+        }
+
+        .hero-cta {
+            margin-top: 40px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeSlideUp 1s 0.8s both;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 32px;
+            border-radius: 10px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75em;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-decoration: none;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+        }
+        .btn-primary {
+            background: var(--neon);
+            color: var(--bg);
+        }
+        .btn-primary:hover {
+            box-shadow: 0 0 30px var(--neon-glow), 0 4px 20px rgba(0,0,0,0.3);
+            transform: translateY(-2px);
+        }
+        .btn-ghost {
+            background: transparent;
+            color: var(--cyan);
+            border: 1px solid rgba(0,229,255,0.3);
+        }
+        .btn-ghost:hover {
+            background: rgba(0,229,255,0.08);
+            box-shadow: 0 0 20px var(--cyan-glow);
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            margin-top: 60px;
+            animation: fadeSlideUp 1s 1s both;
+        }
+        .stat-item { text-align: center; }
+        .stat-num {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.2em;
+            font-weight: 900;
+            color: var(--neon);
+        }
+        .stat-label {
+            font-size: 0.75em;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        /* ===== SCROLL INDICATOR ===== */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: bounce 2s infinite;
+        }
+        .scroll-indicator span {
+            display: block;
+            width: 20px;
+            height: 20px;
+            border-right: 2px solid var(--neon-dim);
+            border-bottom: 2px solid var(--neon-dim);
+            transform: rotate(45deg);
+            opacity: 0.4;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(10px); }
+        }
+
+        /* ===== FEATURE CARDS ===== */
+        .section-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7em;
+            letter-spacing: 6px;
+            color: var(--cyan);
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.8em, 4vw, 2.8em);
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 60px;
+            letter-spacing: 2px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 35px 30px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            opacity: 0;
+            transform: translateY(40px);
+        }
+        .feature-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .feature-card:hover {
+            border-color: rgba(0,255,65,0.2);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3), 0 0 30px rgba(0,255,65,0.05);
+        }
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neon), transparent);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+        .feature-card:hover::before { opacity: 1; }
+
+        .feature-icon {
+            font-size: 2.5em;
+            margin-bottom: 18px;
+            display: inline-block;
+        }
+        .feature-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9em;
+            letter-spacing: 2px;
+            color: #fff;
+            margin-bottom: 12px;
+        }
+        .feature-desc {
+            color: var(--text-dim);
+            font-size: 0.9em;
+            line-height: 1.7;
+        }
+
+        /* ===== HOW IT WORKS ===== */
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            position: relative;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .steps::before {
+            content: '';
+            position: absolute;
+            left: 30px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, var(--neon), var(--cyan), var(--purple));
+            opacity: 0.3;
+        }
+        .step-item {
+            display: flex;
+            gap: 25px;
+            padding: 30px 0;
+            opacity: 0;
+            transform: translateX(-30px);
+        }
+        .step-item.visible {
+            opacity: 1;
+            transform: translateX(0);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .step-num {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 2px solid var(--neon);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 1.2em;
+            color: var(--neon);
+            flex-shrink: 0;
+            background: var(--bg);
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 0 20px rgba(0,255,65,0.1);
+        }
+        .step-content h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1em;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+        .step-content p {
+            color: var(--text-dim);
+            font-size: 0.9em;
+            line-height: 1.7;
+        }
+
+        /* ===== PRICING ===== */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            max-width: 950px;
+            margin: 0 auto;
+        }
+        .price-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 35px 30px;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s;
+            opacity: 0;
+            transform: translateY(40px);
+        }
+        .price-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .price-card.featured {
+            border-color: var(--neon);
+            box-shadow: 0 0 30px rgba(0,255,65,0.08);
+        }
+        .price-card.featured::after {
+            content: 'MOST POPULAR';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--neon);
+            color: var(--bg);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.55em;
+            letter-spacing: 3px;
+            font-weight: 700;
+            padding: 4px 16px;
+            border-radius: 20px;
+        }
+        .price-tier {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8em;
+            letter-spacing: 3px;
+            color: var(--cyan);
+            margin-bottom: 15px;
+        }
+        .price-amount {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.8em;
+            font-weight: 900;
+            color: #fff;
+        }
+        .price-period {
+            color: var(--text-dim);
+            font-size: 0.85em;
+            margin-bottom: 25px;
+        }
+        .price-features {
+            list-style: none;
+            text-align: left;
+            margin-bottom: 25px;
+        }
+        .price-features li {
+            padding: 8px 0;
+            color: var(--text-dim);
+            font-size: 0.88em;
+            border-bottom: 1px solid var(--border);
+        }
+        .price-features li::before {
+            content: '\2713 ';
+            color: var(--neon);
+            font-weight: 700;
+            margin-right: 8px;
+        }
+
+        /* ===== CTA SECTION ===== */
+        .cta-section {
+            text-align: center;
+            background: radial-gradient(ellipse at center, rgba(0,255,65,0.05) 0%, transparent 70%);
+        }
+        .cta-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.5em, 4vw, 2.5em);
+            font-weight: 900;
+            letter-spacing: 3px;
+            margin-bottom: 15px;
+        }
+        .cta-sub {
+            color: var(--text-dim);
+            font-size: 1.1em;
+            margin-bottom: 35px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* ===== FOOTER ===== */
+        footer {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 40px 20px;
+            border-top: 1px solid var(--border);
+            color: var(--text-dim);
+            font-size: 0.8em;
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 600px) {
+            .hero-stats { gap: 25px; }
+            .stat-num { font-size: 1.6em; }
+            section { padding: 60px 15px; }
+            .steps::before { left: 20px; }
+            .step-num { width: 40px; height: 40px; font-size: 0.9em; }
+        }
+        /* ===== SONAR RINGS ===== */
+        .sonar-bg {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px; height: 600px;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .sonar-ring {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            border: 1px solid rgba(191,148,255,0.15);
+            animation: sonarExpand 4s ease-out infinite;
+        }
+        .sonar-ring:nth-child(2) { animation-delay: 1.3s; }
+        .sonar-ring:nth-child(3) { animation-delay: 2.6s; }
+        @keyframes sonarExpand {
+            0%   { width: 0; height: 0; opacity: 0.6; }
+            100% { width: 600px; height: 600px; opacity: 0; }
+        }
+
+        /* ===== NOT-JUST GRID ===== */
+        .notjust-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 50px;
+        }
+        .notjust-card {
+            background: rgba(191,148,255,0.04);
+            border: 1px solid rgba(191,148,255,0.12);
+            border-radius: 14px;
+            padding: 28px 24px;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.5s cubic-bezier(0.16,1,0.3,1);
+        }
+        .notjust-card.visible { opacity: 1; transform: translateY(0); }
+        .notjust-card:hover {
+            border-color: rgba(191,148,255,0.3);
+            background: rgba(191,148,255,0.07);
+        }
+        .notjust-icon { font-size: 2em; margin-bottom: 12px; }
+        .notjust-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.82em;
+            letter-spacing: 2px;
+            color: var(--purple);
+            margin-bottom: 8px;
+        }
+        .notjust-desc { color: var(--text-dim); font-size: 0.88em; line-height: 1.7; }
+
+        /* ===== SPONSOR SECTION ===== */
+        .sponsor-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: start;
+            margin-top: 50px;
+        }
+        @media (max-width: 700px) { .sponsor-split { grid-template-columns: 1fr; gap: 30px; } }
+
+        .sponsor-stat {
+            margin-bottom: 32px;
+            opacity: 0;
+            transform: translateX(-30px);
+            transition: all 0.6s cubic-bezier(0.16,1,0.3,1);
+        }
+        .sponsor-stat.visible { opacity: 1; transform: translateX(0); }
+        .sponsor-stat-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1em;
+            font-weight: 900;
+            color: var(--gold);
+            letter-spacing: 3px;
+            margin-bottom: 6px;
+        }
+        .sponsor-stat-desc { color: var(--text-dim); font-size: 0.9em; line-height: 1.6; }
+
+        .sponsor-list {
+            list-style: none;
+            opacity: 0;
+            transform: translateX(30px);
+            transition: all 0.6s 0.2s cubic-bezier(0.16,1,0.3,1);
+        }
+        .sponsor-list.visible { opacity: 1; transform: translateX(0); }
+        .sponsor-list li {
+            padding: 12px 0;
+            color: var(--text-dim);
+            font-size: 0.9em;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .sponsor-list li::before {
+            content: '';
+            display: inline-block;
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--gold);
+            flex-shrink: 0;
+        }
+
+        /* ===== STORY CARD ===== */
+        .story-card {
+            max-width: 720px;
+            margin: 50px auto 0;
+            background: rgba(0,255,65,0.02);
+            border: 1px solid rgba(0,255,65,0.15);
+            border-radius: 20px;
+            padding: 50px 50px;
+            position: relative;
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.16,1,0.3,1);
+        }
+        .story-card.visible { opacity: 1; transform: translateY(0); }
+        .story-card::before,
+        .story-card::after {
+            content: '';
+            display: block;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--neon), transparent);
+            margin-bottom: 30px;
+            opacity: 0.4;
+        }
+        .story-card::after { margin-top: 30px; margin-bottom: 0; }
+        .story-text {
+            font-size: 1.15em;
+            line-height: 1.9;
+            color: var(--text);
+            font-style: italic;
+            text-align: center;
+        }
+        .story-text p { margin-bottom: 1em; }
+        .story-attr {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7em;
+            letter-spacing: 3px;
+            color: var(--neon);
+            text-align: center;
+            margin-top: 20px;
+        }
+        .cred-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        .cred-pill {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.6em;
+            letter-spacing: 2px;
+            padding: 6px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(0,255,65,0.25);
+            color: var(--text-dim);
+            background: rgba(0,255,65,0.03);
+        }
+        @media (max-width: 600px) { .story-card { padding: 30px 25px; } }
+
+        /* ===== AI TICKER ===== */
+        .ticker-wrap {
+            overflow: hidden;
+            border-top: 1px solid rgba(0,229,255,0.1);
+            border-bottom: 1px solid rgba(0,229,255,0.1);
+            padding: 14px 0;
+            margin: 40px 0;
+            background: rgba(0,229,255,0.02);
+        }
+        .ticker-track {
+            display: flex;
+            white-space: nowrap;
+            animation: tickerScroll 30s linear infinite;
+            gap: 0;
+        }
+        .ticker-item {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.65em;
+            letter-spacing: 4px;
+            color: var(--cyan);
+            padding: 0 30px;
+            opacity: 0.7;
+        }
+        .ticker-sep { color: rgba(0,229,255,0.3); padding: 0 5px; }
+        @keyframes tickerScroll {
+            0%   { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* ===== AI CARDS ===== */
+        .ai-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .ai-card {
+            background: rgba(0,229,255,0.03);
+            border: 1px solid rgba(0,229,255,0.1);
+            border-radius: 14px;
+            padding: 28px 24px;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.5s cubic-bezier(0.16,1,0.3,1);
+        }
+        .ai-card.visible { opacity: 1; transform: translateY(0); }
+        .ai-card:hover { border-color: rgba(0,229,255,0.25); background: rgba(0,229,255,0.06); }
+        .ai-card-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.82em;
+            letter-spacing: 2px;
+            color: var(--cyan);
+            margin-bottom: 10px;
+        }
+        .ai-card-desc { color: var(--text-dim); font-size: 0.88em; line-height: 1.7; }
+
+        /* ===== SCARCITY ===== */
+        .scarcity-inner {
+            max-width: 680px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .slots-meter-wrap {
+            margin: 40px auto;
+            max-width: 480px;
+        }
+        .slots-label {
+            display: flex;
+            justify-content: space-between;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.65em;
+            letter-spacing: 3px;
+            color: var(--text-dim);
+            margin-bottom: 10px;
+        }
+        .slots-label .filled { color: var(--orange); }
+        .slots-track {
+            height: 8px;
+            background: rgba(255,170,0,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid rgba(255,170,0,0.2);
+        }
+        .slots-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--orange), #ff6600);
+            border-radius: 4px;
+            transition: width 1.5s cubic-bezier(0.16,1,0.3,1);
+            box-shadow: 0 0 10px rgba(255,170,0,0.4);
+        }
+        .scarcity-why {
+            list-style: none;
+            text-align: left;
+            max-width: 460px;
+            margin: 30px auto;
+        }
+        .scarcity-why li {
+            padding: 10px 0;
+            color: var(--text-dim);
+            font-size: 0.9em;
+            border-bottom: 1px solid var(--border);
+            padding-left: 20px;
+            position: relative;
+        }
+        .scarcity-why li::before {
+            content: '—';
+            position: absolute;
+            left: 0;
+            color: var(--orange);
+        }
+        .scarcity-final {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85em;
+            letter-spacing: 2px;
+            color: var(--orange);
+            margin-top: 30px;
+            text-shadow: 0 0 20px rgba(255,170,0,0.3);
+        }
+        .scarcity-pulse-ring {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            border: 2px solid rgba(255,170,0,0.6);
+            width: 0; height: 0;
+            pointer-events: none;
+            z-index: 2;
+            animation: scarcityPulse 1.2s ease-out forwards;
+        }
+        @keyframes scarcityPulse {
+            0%   { width: 0; height: 0; opacity: 0.8; border-color: rgba(255,170,0,0.6); }
+            100% { width: 120vw; height: 120vw; opacity: 0; border-color: rgba(255,170,0,0); }
+        }
+
+        /* ===== VIP GATE ===== */
+        body.vip-locked {
+            overflow: hidden !important;
+        }
+        #vip-gate {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(5,5,5,0.95);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+            transition: opacity 0.8s cubic-bezier(0.19, 1, 0.22, 1), transform 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+            transform: scale(1);
+        }
+        #vip-gate.unlocked {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(1.05);
+        }
+        #vip-gate-inner {
+            background: rgba(10, 10, 10, 0.9);
+            border: 1px solid rgba(0, 255, 65, 0.3);
+            padding: 40px;
+            border-radius: 4px;
+            width: 90%;
+            max-width: 420px;
+            box-shadow: 0 0 40px rgba(0, 255, 65, 0.08), inset 0 0 20px rgba(0, 255, 65, 0.04);
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.4s ease;
+        }
+        #vip-gate-inner::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neon), transparent);
+            animation: scanline 2s linear infinite;
+        }
+        #vip-gate-inner.denied {
+            border-color: rgba(255, 170, 0, 0.4);
+            box-shadow: 0 0 40px rgba(255, 170, 0, 0.1), inset 0 0 20px rgba(255, 170, 0, 0.05);
+        }
+        #vip-gate-inner.denied::before {
+            background: linear-gradient(90deg, transparent, var(--orange), transparent);
+        }
+        .vip-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5em;
+            color: var(--neon);
+            text-align: center;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 15px var(--neon-glow);
+        }
+        .vip-sub {
+            color: var(--text-dim);
+            text-align: center;
+            font-size: 0.9em;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        #vip-name-input, #vip-email-input {
+            width: 100%;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: #fff;
+            padding: 15px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1em;
+            text-align: center;
+            outline: none;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+        #vip-name-input:focus {
+            border-color: var(--neon);
+            box-shadow: 0 0 15px rgba(0,255,65,0.2);
+        }
+        #vip-email-input:focus {
+            border-color: var(--orange);
+            box-shadow: 0 0 15px rgba(255,170,0,0.2);
+        }
+        .vip-teaser {
+            background: rgba(0,0,0,0.4);
+            padding: 20px;
+            border-radius: 4px;
+            margin-bottom: 25px;
+            border: 1px dashed rgba(255,170,0,0.2);
+        }
+        .teaser-item {
+            color: #fff;
+            font-size: 0.85em;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+        }
+        .teaser-item::before {
+            content: '\2713';
+            display: inline-block;
+            color: var(--orange);
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .teaser-item:last-child {
+            margin-bottom: 0;
+        }
+        .instagram-link {
+            display: inline-block;
+            color: #fff;
+            text-decoration: none;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            border-radius: 4px;
+            font-size: 0.9em;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .instagram-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220, 39, 67, 0.4);
+        }
+    </style>
+</head>
+<body class="vip-locked">
+
+<!-- ===== VIP GATE MODAL ===== -->
+<div id="vip-gate">
+    <div id="vip-gate-inner">
+        <div id="vip-gate-primary">
+            <h2 class="vip-title">RESTRICTED ACCESS</h2>
+            <p class="vip-sub">Please enter your VIP access name to proceed.</p>
+            <input type="text" id="vip-name-input" placeholder="ENTER ACCESS NAME" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+            <button id="vip-verify-btn" class="btn btn-primary" style="width: 100%; margin-top: 20px;">VERIFY</button>
+            <div id="vip-error" style="display: none; color: #ff3333; margin-top: 15px; font-size: 0.9em; text-align: center; font-family: 'Orbitron', sans-serif;">ACCESS DENIED</div>
+        </div>
+        
+        <div id="vip-gate-secondary" style="display: none; text-align: center;">
+            <h2 class="vip-title" style="color: var(--orange); text-shadow: 0 0 15px rgba(255,170,0,0.5);">ACCESS DENIED</h2>
+            <p class="vip-sub" style="margin-bottom: 25px;">You aren't on the VIP list, but you can still get in line.</p>
+            
+            <div class="vip-teaser" style="text-align: left;">
+                <div class="teaser-item">24/7 Mobile Stream Boxes</div>
+                <div class="teaser-item">Automated Multi-Cam Setup</div>
+                <div class="teaser-item">Zero Network Configuration</div>
+            </div>
+
+            <p style="color: var(--text-dim); font-size: 0.85em; margin-bottom: 15px;">Join the waitlist for updates.</p>
+            <input type="email" id="vip-email-input" placeholder="ENTER EMAIL ADDRESS" autocomplete="email">
+            <button id="vip-waitlist-btn" class="btn btn-ghost" style="width: 100%; margin-top: 15px; border-color: var(--orange); color: var(--orange);">JOIN WAITLIST</button>
+            
+            <div style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                <p style="color: var(--text-dim); font-size: 0.8em; margin-bottom: 15px;">Or follow for early access updates:</p>
+                <a href="https://instagram.com/brody_mcw" target="_blank" class="instagram-link">@brody_mcw</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="grid-overlay"></div>
+<div class="bg-vignette"></div>
+
+<!-- ===== HERO ===== -->
+<section class="hero" data-mood="neon">
+    <div class="hero-content">
+        <div class="hero-badge">LIMITED ROSTER &middot; FIRST COME FIRST SERVED</div>
+        <h1 class="hero-title">
+            <span class="cast">CAST</span><span class="net">NET</span>
+        </h1>
+        <p class="hero-sub">
+            Tournament-grade multi-camera production. Sponsor management. Content delivery. AI engineering. All of it &mdash; from your phone, on the water.
+        </p>
+        <div class="hero-cta">
+            <a href="/onboard" class="btn btn-primary">GET STARTED</a>
+            <a href="#features" class="btn btn-ghost">SEE FEATURES</a>
+        </div>
+        <div class="hero-stats">
+            <div class="stat-item">
+                <div class="stat-num" data-count="8">0</div>
+                <div class="stat-label">Camera Angles</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num" data-count="24">0</div>
+                <div class="stat-label">24/7 Uptime</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num" data-count="100">0</div>
+                <div class="stat-label">% Managed</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num">#1</div>
+                <div class="stat-label">World Ranked Client</div>
+            </div>
+        </div>
+    </div>
+    <div class="scroll-indicator"><span></span></div>
+</section>
+
+<!-- ===== FEATURES ===== -->
+<section id="features" data-mood="cyan">
+    <div class="container">
+        <div class="section-label">CAPABILITIES</div>
+        <h2 class="section-title">Built for the Water</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">&#127909;</div>
+                <div class="feature-title">MULTI-CAM PRODUCTION</div>
+                <div class="feature-desc">Up to 8 camera angles with automatic switching, AI-powered scene detection, and cinematic transitions. Broadcast-quality from a bass boat.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#128225;</div>
+                <div class="feature-title">PHONE CONTROL</div>
+                <div class="feature-desc">Switch cameras, log fish, fire sponsor ads, and control your entire stream from your phone. No laptop needed on the water.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#129302;</div>
+                <div class="feature-title">AI WATCHDOG</div>
+                <div class="feature-desc">24/7 self-healing system monitors every component. Black screen? Audio drop? Connection loss? Fixed automatically before you notice.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#127942;</div>
+                <div class="feature-title">TOURNAMENT READY</div>
+                <div class="feature-desc">Live fish scoring, weigh-in tracking, time markers, and real-time leaderboard overlays. Purpose-built for competitive fishing.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#128250;</div>
+                <div class="feature-title">SPONSOR OVERLAYS</div>
+                <div class="feature-desc">Dynamic sponsor ad system with scheduled rotations, triggered insertions, and branded lower thirds. Show your sponsors, get more sponsors.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#127908;</div>
+                <div class="feature-title">VOICE COMMANDS</div>
+                <div class="feature-desc">Say "fish on" and your stream reacts. Voice-activated clip markers, camera switches, and scoring. Hands stay on the rod.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#128274;</div>
+                <div class="feature-title">FULLY MANAGED</div>
+                <div class="feature-desc">We own the hardware, run the software, and manage the infrastructure. You plug in cameras and go fishing. That's it.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#128752;</div>
+                <div class="feature-title">INSTANT CLIPS</div>
+                <div class="feature-desc">One tap creates highlight clips from your stream. Automatic social-ready exports for Instagram Reels, TikTok, and YouTube Shorts.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#128225;</div>
+                <div class="feature-title">LIVE COMMS</div>
+                <div class="feature-desc">Bidirectional audio between you and your production team. Real-time coordination, voice triggers, and private chat channels.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== NOT JUST TOURNAMENTS ===== -->
+<section id="not-just" data-mood="purple" style="position:relative; overflow:hidden;">
+    <div class="sonar-bg">
+        <div class="sonar-ring"></div>
+        <div class="sonar-ring"></div>
+        <div class="sonar-ring"></div>
+    </div>
+    <div class="container" style="position:relative; z-index:1;">
+        <div class="section-label" style="color:var(--purple);">DEPLOYMENT</div>
+        <h2 class="section-title">WHEREVER THE FISH ARE,<br>YOU'RE LIVE</h2>
+        <p style="text-align:center; color:var(--text-dim); max-width:600px; margin:0 auto 20px; font-size:1em; line-height:1.7;">
+            Most streaming setups fall apart 20 miles from a cell tower. CastNET was built for the places where nothing else works.
+        </p>
+        <div class="notjust-grid">
+            <div class="notjust-card">
+                <div class="notjust-icon">&#128741;</div>
+                <div class="notjust-title">TOURNAMENT DAY</div>
+                <div class="notjust-desc">Full multi-cam production on the water, scored and sponsored. Launch day ready, every time.</div>
+            </div>
+            <div class="notjust-card">
+                <div class="notjust-icon">&#127794;</div>
+                <div class="notjust-title">REMOTE CONTENT TRIPS</div>
+                <div class="notjust-desc">Backwater, hunting lease, off-grid lake. If you can get there, we can stream from there.</div>
+            </div>
+            <div class="notjust-card">
+                <div class="notjust-icon">&#128247;</div>
+                <div class="notjust-title">ANY CAMERA, ANY ANGLER</div>
+                <div class="notjust-desc">DSLR, GoPro, phone, DJI, action cam &mdash; we integrate it. Zero broadcast experience required.</div>
+            </div>
+            <div class="notjust-card">
+                <div class="notjust-icon">&#128752;</div>
+                <div class="notjust-title">STARLINK + HOTSPOT READY</div>
+                <div class="notjust-desc">Engineered for Starlink latency spikes and cellular dead zones. Bonded connections, SRT protocol.</div>
+            </div>
+            <div class="notjust-card">
+                <div class="notjust-icon">&#127907;</div>
+                <div class="notjust-title">NOT JUST FISHING</div>
+                <div class="notjust-desc">Hunting content, dock days, sponsor activations, boat shows, media days. The rig goes anywhere.</div>
+            </div>
+            <div class="notjust-card">
+                <div class="notjust-icon">&#9889;</div>
+                <div class="notjust-title">RUGGED BY DESIGN</div>
+                <div class="notjust-desc">Built to survive tournament abuse &mdash; water, vibration, 12v power, extreme heat. Not a studio rig.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== SPONSOR MANAGEMENT ===== -->
+<section id="sponsors" data-mood="gold">
+    <div class="container">
+        <div class="section-label" style="color:var(--gold);">SPONSOR MANAGEMENT</div>
+        <h2 class="section-title">YOUR SPONSORS FINALLY GET<br>WHAT THEY PAID FOR</h2>
+        <p style="text-align:center; color:var(--text-dim); max-width:620px; margin:0 auto 20px; font-size:1em; line-height:1.7;">
+            Most anglers can't tell a sponsor how many times their logo appeared on stream. CastNET can. Down to the second.
+        </p>
+        <div class="sponsor-split">
+            <div>
+                <div class="sponsor-stat">
+                    <div class="sponsor-stat-label">AUTO-ROTATION</div>
+                    <div class="sponsor-stat-desc">Sponsors cycle on schedule. No manual firing. No missed obligations. It just runs.</div>
+                </div>
+                <div class="sponsor-stat">
+                    <div class="sponsor-stat-label">PROOF OF PLACEMENT</div>
+                    <div class="sponsor-stat-desc">Timestamped log of every ad impression, every overlay fire, every mention. Send it straight to your rep.</div>
+                </div>
+                <div class="sponsor-stat">
+                    <div class="sponsor-stat-label">OBLIGATION TRACKING</div>
+                    <div class="sponsor-stat-desc">Know exactly which commitments are fulfilled and what's still owed. Never miss a contractual appearance again.</div>
+                </div>
+            </div>
+            <div>
+                <p style="font-family:'Orbitron',sans-serif; font-size:0.7em; letter-spacing:3px; color:var(--text-dim); margin-bottom:15px;">WHAT'S INCLUDED</p>
+                <ul class="sponsor-list">
+                    <li>Sponsor database with contract terms</li>
+                    <li>Required appearances per event tracked automatically</li>
+                    <li>Auto-fires overlays at key moments &mdash; fish on, weigh-in, cast</li>
+                    <li>Logos, lower thirds, full-screen bumpers &mdash; all formats</li>
+                    <li>Monthly sponsor report you can forward directly</li>
+                    <li>AI drafts your sponsor recap emails</li>
+                    <li>New sponsor detection from your social mentions</li>
+                </ul>
+                <p style="margin-top:20px; color:var(--text-dim); font-size:0.85em; font-style:italic; line-height:1.6;">A pro assistant managing your sponsor relationships &mdash; one you could never afford to hire.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== SOCIAL PROOF ===== -->
+<section id="story" data-mood="neon">
+    <div class="container">
+        <div class="section-label">THE TEAM</div>
+        <h2 class="section-title">BUILT IN THE FIELD,<br>NOT IN AN OFFICE</h2>
+        <div class="story-card">
+            <div class="story-text">
+                <p>I grew up fishing alongside the guy who became #1 in the world.</p>
+                <p>I traveled with him on tour. I was up all night fixing his electronics while he slept &mdash; studying every system, tinkering until it was perfect, then doing it again the next morning before takeoff.</p>
+                <p>That obsession is what built CastNET. And now it's not just me anymore.</p>
+                <p>Now there's a real engineering team behind the curtain. A retired <strong>Chrysler and Hurco</strong> engineer who spent decades building production lines and precision 3D printing systems. A career <strong>General Motors</strong> engineer who knows manufacturing inside and out. And a retired <strong>NASA</strong> engineer who designed systems for space. They're all on payroll, building alongside me every day. This isn't a side project &mdash; this is a legitimate engineering operation.</p>
+            </div>
+            <div class="story-attr">&mdash; Brody McWilliams, CastNET</div>
+        </div>
+        <div class="cred-pills">
+            <div class="cred-pill">Fished alongside the #1 ranked angler in the world</div>
+            <div class="cred-pill">10&times; Junior State Champion</div>
+            <div class="cred-pill">Big Ten Champion &mdash; Indiana University</div>
+            <div class="cred-pill">15+ Years Tournament Electronics</div>
+            <div class="cred-pill">Retired Chrysler / Hurco / GM / NASA Engineers on Staff</div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== AI LAYER ===== -->
+<section id="ai-layer" data-mood="cyan">
+    <div class="container">
+        <div class="section-label" style="color:var(--cyan);">INTELLIGENCE</div>
+        <h2 class="section-title">NOT JUST SOFTWARE.<br>AN INTELLIGENCE LAYER.</h2>
+        <div class="ticker-wrap">
+            <div class="ticker-track">
+                <span class="ticker-item">AI WATCHDOG</span><span class="ticker-sep">&middot;</span>
+                <span class="ticker-item">AUTO-CRASH RECOVERY</span><span class="ticker-sep">&middot;</span>
+                <span class="ticker-item">VOICE COMMANDS</span><span class="ticker-sep">&middot;</span>
+                <span class="ticker-item">SCENE DETECTION</span><span class="ticker-sep">&middot;</span>
+                <span class="ticker-item">SPONSOR AUTOMATION</span><span class="ticker-sep">&middot;</span>
+                <span class="ticker-item">CLIP INTELLIGENCE</span><span class="ticker-sep">&middot;</span>
+                <span class="ticker-item">FISH SCORING AI</span><span class="ticker-sep">&middot;</span>
+                <span class="ticker-item">REAL-TIME ANALYTICS</span><span class="ticker-sep">&middot;</span>
+                <span class="ticker-item">PREDICTIVE MONITORING</span><span class="ticker-sep">&middot;</span>
+                <span class="ticker-item">CONTENT PIPELINE</span><span class="ticker-sep">&middot;</span>
+                <span class="ticker-item">AI WATCHDOG</span><span class="ticker-sep">&middot;</span>
+                <span class="ticker-item">AUTO-CRASH RECOVERY</span><span class="ticker-sep">&middot;</span>
+                <span class="ticker-item">VOICE COMMANDS</span><span class="ticker-sep">&middot;</span>
+                <span class="ticker-item">SCENE DETECTION</span><span class="ticker-sep">&middot;</span>
+                <span class="ticker-item">SPONSOR AUTOMATION</span><span class="ticker-sep">&middot;</span>
+                <span class="ticker-item">CLIP INTELLIGENCE</span><span class="ticker-sep">&middot;</span>
+                <span class="ticker-item">FISH SCORING AI</span><span class="ticker-sep">&middot;</span>
+                <span class="ticker-item">REAL-TIME ANALYTICS</span><span class="ticker-sep">&middot;</span>
+                <span class="ticker-item">PREDICTIVE MONITORING</span><span class="ticker-sep">&middot;</span>
+                <span class="ticker-item">CONTENT PIPELINE</span><span class="ticker-sep">&middot;</span>
+            </div>
+        </div>
+        <div class="ai-cards">
+            <div class="ai-card">
+                <div class="ai-card-title">ALWAYS WATCHING</div>
+                <div class="ai-card-desc">SAM (Stream Automation Monitor) checks every component every 30 seconds. Black screen? Audio drop? Connection loss? Self-heals before you notice anything's wrong.</div>
+            </div>
+            <div class="ai-card">
+                <div class="ai-card-title">LEARNS YOUR PATTERNS</div>
+                <div class="ai-card-desc">The system adapts to your fishing style, your sponsors, your audience behavior. Gets smarter every stream. Fewer manual inputs over time, not more.</div>
+            </div>
+            <div class="ai-card">
+                <div class="ai-card-title">WORKS WHILE YOU SLEEP</div>
+                <div class="ai-card-desc">Clips get cut, social posts get drafted, sponsor reports get generated. Your content pipeline runs overnight, automatically, every session.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== HOW IT WORKS ===== -->
+<section id="how" data-mood="neon">
+    <div class="container">
+        <div class="section-label">PROCESS</div>
+        <h2 class="section-title">How It Works</h2>
+        <div class="steps">
+            <div class="step-item">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                    <h3>Sign Up</h3>
+                    <p>Choose your service tier and complete our quick onboarding form. We'll reach out within 24 hours to schedule your setup.</p>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                    <h3>We Install Everything</h3>
+                    <p>Our team configures cameras, streaming hardware, and software on your boat. Pre-tested and tournament-ready before you leave the dock.</p>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num">3</div>
+                <div class="step-content">
+                    <h3>You Fish</h3>
+                    <p>Go catch them. Your stream runs automatically with AI monitoring. Use your phone to switch cameras or just let the system handle it.</p>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num">4</div>
+                <div class="step-content">
+                    <h3>Content Delivered</h3>
+                    <p>Full stream archive, highlight clips, social media exports, and analytics delivered after every session. Your content, ready to post.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== SCARCITY ===== -->
+<section id="scarcity" data-mood="orange">
+    <div class="container">
+        <div class="scarcity-inner">
+            <div class="section-label" style="color:var(--orange);">ROSTER STATUS</div>
+            <h2 class="section-title">THIS IS AN INVITATION,<br>NOT A SIGN-UP FORM</h2>
+            <p style="color:var(--text-dim); font-size:1em; line-height:1.8; max-width:560px; margin:0 auto;">
+                CastNET is deliberately capped. We don't take everyone &mdash; we can't. Every angler gets real attention, real engineering, real results. That means the roster stays small.
+            </p>
+
+            <div class="slots-meter-wrap">
+                <div class="slots-label">
+                    <span>ROSTER CAPACITY</span>
+                    <span class="filled" id="slots-filled-label">7 / 10 SLOTS FILLED</span>
+                </div>
+                <div class="slots-track">
+                    <div class="slots-bar" id="slots-bar"></div>
+                </div>
+            </div>
+
+            <p style="color:var(--text-dim); font-size:0.88em; font-style:italic; line-height:1.7; max-width:480px; margin:0 auto;">
+                Spots are filled on a first-come, first-served basis. When the roster is full, the waitlist opens. There is no guarantee of when a slot reopens.
+            </p>
+
+            <ul class="scarcity-why">
+                <li>Every client gets a dedicated subnet, hardware configuration, and personally tuned setup</li>
+                <li>Brody manages every stream personally &mdash; there are only so many hours in a day</li>
+                <li>Quality over scale &mdash; always</li>
+            </ul>
+
+            <p class="scarcity-final">If you're reading this, a slot is still open. Don't wait.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===== PRICING ===== -->
+<section id="pricing" data-mood="cyan">
+    <div class="container">
+        <div class="section-label">PRICING</div>
+        <h2 class="section-title">Simple, Transparent Pricing</h2>
+        <div class="pricing-grid">
+            <div class="price-card">
+                <div class="price-tier">SELF-SERVICE</div>
+                <div class="price-amount">$100</div>
+                <div class="price-period">per stream day</div>
+                <ul class="price-features">
+                    <li>Phone control panel</li>
+                    <li>Camera switching</li>
+                    <li>Fish scoring + markers</li>
+                    <li>Auto-crash recovery</li>
+                    <li>Sponsor overlay system</li>
+                    <li>Email + Telegram support</li>
+                </ul>
+                <a href="/onboard" class="btn btn-ghost" style="width:100%">SELECT</a>
+            </div>
+            <div class="price-card featured">
+                <div class="price-tier">MANAGED</div>
+                <div class="price-amount">$200</div>
+                <div class="price-period">per stream day</div>
+                <ul class="price-features">
+                    <li>Everything in Self-Service</li>
+                    <li>Live camera operator</li>
+                    <li>Real-time ad insertion</li>
+                    <li>Highlight clip creation</li>
+                    <li>Monthly analytics report</li>
+                    <li>Priority support</li>
+                </ul>
+                <a href="/onboard" class="btn btn-primary" style="width:100%">SELECT</a>
+            </div>
+            <div class="price-card">
+                <div class="price-tier">SEASON PASS</div>
+                <div class="price-amount">$1,500</div>
+                <div class="price-period">per month</div>
+                <ul class="price-features">
+                    <li>Everything in Managed</li>
+                    <li>Unlimited stream days</li>
+                    <li>Content creation pipeline</li>
+                    <li>Social media clips + posts</li>
+                    <li>Sponsor coordination</li>
+                    <li>Dedicated account manager</li>
+                </ul>
+                <a href="/onboard" class="btn btn-ghost" style="width:100%">SELECT</a>
+            </div>
+        </div>
+        <p style="text-align:center; color:var(--text-dim); margin-top:25px; font-size:0.85em;">
+            One-time setup fee: <strong style="color:var(--orange)">$500</strong> &mdash; covers equipment, software, testing, and onboarding.
+        </p>
+        <p style="text-align:center; color:var(--text-dim); margin-top:10px; font-size:0.82em; font-style:italic;">
+            Prices lock in at signup. Rate increases apply to new clients only &mdash; existing clients are grandfathered.
+        </p>
+    </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section class="cta-section" data-mood="neon">
+    <div class="container">
+        <h2 class="cta-title">ONE SPOT LEFT? FIND OUT.</h2>
+        <p class="cta-sub">Fill out the intake form. Takes 3 minutes. We'll confirm availability and reach out within 24 hours.</p>
+        <a href="/onboard" class="btn btn-primary">APPLY FOR A SPOT &rarr;</a>
+    </div>
+</section>
+
+<footer>
+    <p>CastNET Productions &mdash; Professional Tournament Livestreaming &mdash; Built by Brody McWilliams &mdash; <span style="color:var(--neon);">&#9679;</span> wiz-harbor always watching</p>
+</footer>
+
+<script>
+// Particle network removed — was the noisy ambient bg effect Brody hated.
+// setMood() kept as a no-op so the mood-observer below doesn't throw.
+function setMood() { /* no-op */ }
+
+// ===== COUNTER ANIMATION =====
+function animateCounters() {
+    document.querySelectorAll('.stat-num[data-count]').forEach(el => {
+        const target = parseInt(el.dataset.count);
+        let current = 0;
+        const step = target / 60;
+        const timer = setInterval(() => {
+            current += step;
+            if (current >= target) {
+                current = target;
+                clearInterval(timer);
+            }
+            el.textContent = Math.floor(current);
+        }, 16);
+    });
+}
+
+// ===== SCROLL REVEAL =====
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+            setTimeout(() => {
+                entry.target.classList.add('visible');
+            }, i * 100);
+            observer.unobserve(entry.target);
+        }
+    });
+}, { threshold: 0.15 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Animate counters when hero is visible
+    const heroObs = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+            animateCounters();
+            heroObs.disconnect();
+        }
+    });
+    heroObs.observe(document.querySelector('.hero'));
+
+    // Reveal cards and steps
+    document.querySelectorAll('.feature-card, .price-card, .step-item, .notjust-card, .sponsor-stat, .sponsor-list, .story-card, .ai-card').forEach(el => {
+        observer.observe(el);
+    });
+
+    // Mood transitions
+    const moodObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const mood = entry.target.dataset.mood;
+                if (mood) setMood(mood);
+            }
+        });
+    }, { threshold: 0.3 });
+
+    document.querySelectorAll('section[data-mood]').forEach(s => moodObserver.observe(s));
+
+    // Slots bar animation
+    const slotsBar = document.getElementById('slots-bar');
+    if (slotsBar) {
+        const slotsObs = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting) {
+                slotsBar.style.width = '70%'; // 7/10 slots
+                slotsObs.disconnect();
+                // Sonar pulse — 3 rings at staggered delays
+                [0, 350, 700].forEach(delay => {
+                    setTimeout(() => {
+                        const ring = document.createElement('div');
+                        ring.className = 'scarcity-pulse-ring';
+                        document.body.appendChild(ring);
+                        ring.addEventListener('animationend', () => ring.remove());
+                    }, delay);
+                });
+            }
+        }, { threshold: 0.5 });
+        slotsObs.observe(document.getElementById('scarcity'));
+    }
+});
+
+// ===== VIP GATE LOGIC =====
+const VIP_RAW = [
+    "Jacob Wheeler", "Jordan Lee", "Brandon Palaniuk", "Chris Johnston", "Cory Johnston", 
+    "Kyle Welcher", "Patrick Walters", "Dustin Connell", "Ott DeFoe", "Edwin Evers", 
+    "Brent Ehrler", "Justin Lucas", "Alton Jones Jr", "Alton Jones", "Adrian Avena", 
+    "Matt Becker", "Zack Birge", "Brent Chapman", "David Dudley", "James Elam", 
+    "Todd Faircloth", "Anthony Gagliardi", "Drew Gill", "Nick Hatfield", "Bobby Lane", 
+    "Chris Lane", "Mark Daniels Jr", "Justin Cooper", "Mark Davis", "Jason Christie", 
+    "Hank Cherry", "Scott Canterbury", "Drew Benton", "Stetson Blaylock", "John Cox", 
+    "John Crews", "Keith Combs", "Brandon Cobb", "Brandon Card", "Blake Capps", 
+    "Seth Feider", "Austin Felix", "Kyoya Fujita", "Lee Livesay", "Wes Logan", 
+    "Bill Lowen", "Cody Meyer", "Brock Mosley", "Jay Przekurat", "Casey Scanlon", 
+    "Pat Schlapper", "Bryan Schmitt", "Tucker Smith", "Tyler Williams", "Dylan Nutt", 
+    "Logan Parks", "Brian Thrift", "Cliff Pace", "Josh Bertrand", "Gerald Swindle", 
+    "Timmy Horton", "Scott Suggs", "Keith Carson", "Kevin VanDam", "Rick Clunn", 
+    "Mike Iaconelli", "Skeet Reese", "Greg Hackney", "Jimmy Houston", "Bill Dance", 
+    "Hank Parker", "Scott Martin", "Hilary Martin", "Alex Peric", "Byron Velvick", 
+    "Hood Fishing", "Carter Nutt", "Rickey Morris", "Nick Brown", "Brody McWilliams", 
+    "Brody", "Admin"
+];
+
+// Build an array of valid accepted names (exact matches, case insensitive)
+const ALLOWED_NAMES = VIP_RAW.map(name => name.toLowerCase().trim());
+
+function initVipGate() {
+    const gate = document.getElementById('vip-gate');
+    const inner = document.getElementById('vip-gate-inner');
+    const primary = document.getElementById('vip-gate-primary');
+    const secondary = document.getElementById('vip-gate-secondary');
+    const nameInput = document.getElementById('vip-name-input');
+    const verifyBtn = document.getElementById('vip-verify-btn');
+    const errorMsg = document.getElementById('vip-error');
+    
+    function checkAccess() {
+        const checkName = nameInput.value.trim().toLowerCase();
+        if (checkName === '') return;
+        
+        if (ALLOWED_NAMES.includes(checkName) || checkName === '1234') {
+            // Unlocked state!
+            gate.classList.add('unlocked');
+            document.body.classList.remove('vip-locked');
+            
+            if (checkName === '1234') {
+                // DEMO MODE — redirect to the standalone demo dashboard
+                // This shows an impressive read-only clone of Mission Control
+                // with static fake data. No API calls, no risk.
+                window.location.href = 'demo.html';
+                return;
+            }
+
+            // Remove from DOM after transition
+            setTimeout(() => gate.style.display = 'none', 850);
+        } else {
+            // Denied State!
+            errorMsg.style.display = 'block';
+            nameInput.style.borderColor = '#ff3333';
+            
+            setTimeout(() => {
+                // Transition to secondary waitlist view
+                inner.classList.add('denied');
+                primary.style.display = 'none';
+                secondary.style.display = 'block';
+                // Trigger reflow for layout transition
+                void inner.offsetHeight;
+            }, 800);
+        }
+    }
+    
+    verifyBtn.addEventListener('click', checkAccess);
+    nameInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') checkAccess();
+    });
+}
+initVipGate();
+
+// ===== LEAD CAPTURE: wire VIP gate + waitlist to beacon =====
+(function() {
+    var verifyBtn = document.getElementById('vip-verify-btn');
+    var nameInput = document.getElementById('vip-name-input');
+    if (verifyBtn && nameInput) {
+        verifyBtn.addEventListener('click', function() {
+            var n = nameInput.value.trim();
+            if (n.length >= 2 && window._fi_beacon) {
+                window._fi_beacon({ type: 'vip_attempt', name: n, referrer: document.referrer || null });
+            }
+        });
+    }
+    var waitlistBtn = document.getElementById('vip-waitlist-btn');
+    var emailInput = document.getElementById('vip-email-input');
+    if (waitlistBtn && emailInput) {
+        waitlistBtn.addEventListener('click', function() {
+            var e = emailInput.value.trim();
+            if (e.length >= 3 && window._fi_beacon) {
+                window._fi_beacon({ type: 'waitlist', email: e, referrer: document.referrer || null });
+            }
+        });
+    }
+})();
+
+</script>
+<script src="/assets/tracker.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CASTNET // DEMO MODE</title>
+    <meta name="robots" content="noindex,nofollow">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ===== RESET & BASE ===== */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --neon: #00ff41;
+            --neon-dim: #00cc33;
+            --neon-glow: rgba(0, 255, 65, 0.3);
+            --neon-glow-strong: rgba(0, 255, 65, 0.6);
+            --cyan: #00e5ff;
+            --cyan-glow: rgba(0, 229, 255, 0.3);
+            --red: #ff4444;
+            --red-glow: rgba(255, 68, 68, 0.4);
+            --orange: #ffaa00;
+            --orange-glow: rgba(255, 170, 0, 0.3);
+            --purple: #bf94ff;
+            --purple-glow: rgba(191, 148, 255, 0.3);
+            --bg-deep: #0e0e10;
+            --bg-card: rgba(24, 24, 27, 0.9);
+            --bg-card-hover: rgba(31, 31, 35, 0.95);
+            --border: #2a2a2e;
+            --border-bright: #3a3a3e;
+            --text: #efeff1;
+            --text-dim: #adadb8;
+            --text-bright: #ffffff;
+            --font-mono: 'Share Tech Mono', 'Courier New', monospace;
+            --font-display: 'Orbitron', sans-serif;
+            --radius-card: 12px;
+        }
+
+        body {
+            background: var(--bg-deep);
+            color: var(--text);
+            font-family: var(--font-mono);
+            font-size: 15px;
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* ===== DEMO BANNER ===== */
+        .demo-banner {
+            position: fixed;
+            top: 0; left: 0; width: 100%;
+            background: linear-gradient(90deg, #ff8800, #ffaa00, #ff8800);
+            color: #000;
+            text-align: center;
+            padding: 8px 10px;
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: 0.8em;
+            letter-spacing: 3px;
+            z-index: 100000;
+            box-shadow: 0 0 20px rgba(255,170,0,0.5);
+            animation: bannerPulse 3s ease-in-out infinite;
+        }
+        @keyframes bannerPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(255,170,0,0.5); }
+            50% { box-shadow: 0 0 35px rgba(255,170,0,0.8); }
+        }
+
+        /* ===== MATRIX RAIN CANVAS ===== */
+        #matrix-rain {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0; opacity: 0.07; pointer-events: none;
+        }
+
+        /* ===== SCANLINE OVERLAY ===== */
+        body::before {
+            content: '';
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: repeating-linear-gradient(0deg,
+                transparent, transparent 2px,
+                rgba(0, 255, 65, 0.015) 2px,
+                rgba(0, 255, 65, 0.015) 4px);
+            pointer-events: none;
+            z-index: 9998;
+        }
+
+        /* ===== MAIN CONTAINER ===== */
+        .main-container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 50px 15px 80px 15px; /* extra top padding for banner */
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            text-align: center;
+            padding: 25px 0 15px;
+            border-bottom: 1px solid var(--border-bright);
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .header::after {
+            content: '';
+            position: absolute; bottom: -1px; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--neon), transparent);
+            box-shadow: 0 0 15px var(--neon-glow-strong);
+        }
+        .logo {
+            font-family: var(--font-display);
+            font-size: 2.2em; font-weight: 900;
+            letter-spacing: 6px; color: var(--neon);
+            text-shadow: 0 0 20px var(--neon-glow), 0 0 40px var(--neon-glow), 0 0 80px rgba(0, 255, 65, 0.15);
+            animation: flicker 4s infinite;
+            position: relative;
+        }
+        .logo .sub {
+            display: block;
+            font-family: var(--font-mono);
+            font-size: 0.35em; letter-spacing: 8px;
+            color: var(--text-dim); margin-top: 5px; font-weight: 400;
+        }
+        @keyframes flicker {
+            0%, 95%, 100% { opacity: 1; }
+            96% { opacity: 0.8; }
+            97% { opacity: 1; }
+            98% { opacity: 0.6; }
+            99% { opacity: 1; }
+        }
+        .status-bar {
+            display: flex; justify-content: center;
+            gap: 25px; margin-top: 12px;
+            font-size: 0.8em; letter-spacing: 2px;
+        }
+        .status-bar span {
+            padding: 4px 12px;
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 10px; height: 10px;
+            border-radius: 50%; margin-right: 6px;
+            animation: pulse-dot 2s infinite;
+        }
+        .status-indicator.online {
+            background: var(--neon);
+            box-shadow: 0 0 8px var(--neon-glow);
+        }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* ===== GLITCH TEXT ===== */
+        .glitch { position: relative; }
+        .glitch::before, .glitch::after {
+            content: attr(data-text);
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+        }
+        .glitch::before {
+            animation: glitch-1 3s infinite linear alternate-reverse;
+            clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+            color: var(--cyan);
+        }
+        .glitch::after {
+            animation: glitch-2 2.5s infinite linear alternate-reverse;
+            clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+            color: var(--red);
+        }
+        @keyframes glitch-1 { 0%, 90% { transform: translate(0); } 91% { transform: translate(-2px, 1px); } 92% { transform: translate(2px, -1px); } 93% { transform: translate(0); } }
+        @keyframes glitch-2 { 0%, 88% { transform: translate(0); } 89% { transform: translate(2px, 1px); } 90% { transform: translate(-1px, -1px); } 91% { transform: translate(0); } }
+
+        /* ===== TABS ===== */
+        .tab-nav {
+            display: flex; gap: 0;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        .tab-btn {
+            flex: 1; padding: 12px 8px;
+            background: transparent; border: none;
+            color: var(--text-dim);
+            font-family: var(--font-display);
+            font-size: 0.75em; letter-spacing: 3px;
+            cursor: pointer; transition: all 0.3s ease;
+            position: relative; text-transform: uppercase;
+        }
+        .tab-btn:not(:last-child) { border-right: 1px solid var(--border); }
+        .tab-btn:hover { color: var(--neon); background: rgba(0, 255, 65, 0.05); }
+        .tab-btn.active {
+            color: var(--neon);
+            background: rgba(0, 255, 65, 0.1);
+            text-shadow: 0 0 10px var(--neon-glow);
+        }
+        .tab-btn.active::after {
+            content: '';
+            position: absolute; bottom: 0; left: 0; right: 0;
+            height: 2px;
+            background: var(--neon);
+            box-shadow: 0 0 10px var(--neon-glow);
+        }
+        .tab-view { display: none; }
+        .tab-view.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ===== CARDS ===== */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-card);
+            padding: 18px; margin-bottom: 15px;
+            position: relative; overflow: hidden;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .card::before {
+            content: '';
+            position: absolute; top: 0; left: 0;
+            width: 3px; height: 100%;
+            background: var(--text-dim);
+            transition: all 0.3s ease;
+        }
+        .card:hover { border-color: var(--border-bright); background: var(--bg-card-hover); }
+        .card:hover::before { background: var(--neon); box-shadow: 0 0 15px var(--neon-glow); }
+        .card.live::before { background: var(--neon); box-shadow: 0 0 15px var(--neon-glow); }
+        .card.backup::before { background: var(--orange); box-shadow: 0 0 15px var(--orange-glow); }
+        .card-label {
+            font-family: var(--font-display);
+            font-size: 0.7em; letter-spacing: 2px;
+            color: var(--text-dim);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px; margin-bottom: 12px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .card-label .icon { font-size: 1.2em; }
+
+        /* ===== COMMAND BUTTONS ===== */
+        .cmd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .cmd-btn {
+            padding: 18px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-card);
+            background: rgba(0, 0, 0, 0.6);
+            color: var(--text);
+            font-family: var(--font-display);
+            font-size: 0.7em; letter-spacing: 2px;
+            cursor: pointer; transition: all 0.2s ease;
+            position: relative; overflow: hidden;
+            text-transform: uppercase;
+        }
+        .cmd-btn::after {
+            content: '';
+            position: absolute; top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 65, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+        .cmd-btn:hover::after { left: 100%; }
+        .cmd-btn:hover { border-color: var(--neon); box-shadow: 0 0 20px var(--neon-glow); }
+        .cmd-btn:active { transform: scale(0.97); }
+        .cmd-btn.ready { border-color: rgba(0, 255, 65, 0.3); }
+        .cmd-btn.ready:hover { background: rgba(0, 255, 65, 0.1); }
+        .cmd-btn.clip { border-color: rgba(0, 229, 255, 0.3); }
+        .cmd-btn.clip:hover { background: rgba(0, 229, 255, 0.1); border-color: var(--cyan); box-shadow: 0 0 20px var(--cyan-glow); color: var(--cyan); }
+        .cmd-btn.clip-alt { border-color: rgba(255, 152, 0, 0.3); }
+        .cmd-btn.clip-alt:hover { background: rgba(255, 152, 0, 0.1); border-color: var(--orange); box-shadow: 0 0 20px var(--orange-glow); color: var(--orange); }
+        .cmd-btn.danger { border-color: rgba(255, 0, 64, 0.3); }
+        .cmd-btn.danger:hover { background: rgba(255, 0, 64, 0.1); border-color: var(--red); box-shadow: 0 0 20px var(--red-glow); color: var(--red); }
+        .cmd-btn.note { border-color: rgba(213, 0, 249, 0.3); }
+        .cmd-btn.note:hover { background: rgba(213, 0, 249, 0.1); border-color: var(--purple); box-shadow: 0 0 20px var(--purple-glow); color: var(--purple); }
+        .cmd-btn .emoji { font-size: 1.6em; display: block; margin-bottom: 6px; }
+        .cmd-btn.full-width { grid-column: 1 / -1; }
+
+        /* ===== SECTION HEADERS ===== */
+        .section-header {
+            font-family: var(--font-display);
+            font-size: 0.8em; letter-spacing: 4px;
+            color: var(--text-dim);
+            margin: 25px 0 12px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .section-header .line { flex: 1; height: 1px; background: linear-gradient(90deg, var(--border-bright), transparent); }
+
+        /* ===== STREAM CARDS ===== */
+        .stream-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+        .stream-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-card);
+            padding: 15px; position: relative;
+            overflow: hidden; transition: all 0.3s ease;
+        }
+        .stream-card::before {
+            content: '';
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 2px;
+            background: #333; transition: all 0.3s;
+        }
+        .stream-card.live::before {
+            background: var(--neon);
+            box-shadow: 0 0 20px var(--neon-glow);
+            animation: scanline-glow 2s infinite;
+        }
+        .stream-card.backup::before {
+            background: var(--orange);
+            box-shadow: 0 0 20px var(--orange-glow);
+        }
+        @keyframes scanline-glow { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .stream-name {
+            font-family: var(--font-display);
+            font-size: 1em; letter-spacing: 4px;
+            color: var(--text-bright); text-transform: uppercase;
+        }
+        .stream-meta { font-size: 0.8em; color: var(--text-dim); margin-top: 6px; }
+
+        /* ===== STATUS BADGES ===== */
+        .badge {
+            padding: 3px 10px; border-radius: 2px;
+            font-size: 0.7em; letter-spacing: 2px;
+            font-family: var(--font-display); font-weight: 700;
+        }
+        .badge.live { background: rgba(0, 255, 65, 0.15); color: var(--neon); border: 1px solid rgba(0, 255, 65, 0.3); text-shadow: 0 0 8px var(--neon-glow); }
+        .badge.backup { background: rgba(255, 152, 0, 0.15); color: var(--orange); border: 1px solid rgba(255, 152, 0, 0.3); }
+        .badge.offline { background: rgba(100, 100, 100, 0.15); color: #666; border: 1px solid rgba(100, 100, 100, 0.3); }
+
+        /* ===== LIVE PULSE ===== */
+        .live-pulse {
+            display: inline-block; width: 12px; height: 12px;
+            background: var(--neon); border-radius: 50%;
+            margin-right: 6px;
+            animation: live-beat 1.5s ease-in-out infinite;
+            box-shadow: 0 0 8px var(--neon-glow);
+        }
+        @keyframes live-beat { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.4); opacity: 0.6; } }
+
+        /* ===== FLEET BAR ===== */
+        .fleet-bar {
+            display: flex; flex-wrap: wrap; gap: 8px;
+            padding: 8px 15px; margin-bottom: 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-card);
+            font-size: 0.85em;
+        }
+        .fleet-bar .fleet-title { color: var(--text-dim); letter-spacing: 2px; margin-right: 8px; align-self: center; }
+        .fleet-peer {
+            display: flex; align-items: center; gap: 4px;
+            padding: 2px 8px; border-radius: 3px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        .machine-dot {
+            width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+        }
+        .machine-dot.online { background: var(--neon); box-shadow: 0 0 6px var(--neon-glow); }
+        .machine-dot.offline { background: var(--red); box-shadow: 0 0 6px rgba(255, 0, 60, 0.4); }
+
+        /* ===== REC PATH BAR ===== */
+        .rec-path-bar {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 15px; margin-bottom: 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-card);
+            font-size: 0.85em;
+        }
+        .rec-path-bar .rec-icon { color: var(--red); font-size: 1.1em; animation: live-beat 1.5s ease-in-out infinite; }
+        .rec-path-bar .rec-label { color: var(--text-dim); letter-spacing: 1px; }
+        .rec-path-bar .rec-value { color: var(--cyan); font-family: var(--font-mono); }
+
+        /* ===== SPECS ===== */
+        .specs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .spec-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 6px; padding: 14px;
+        }
+        .spec-card h4 { font-family: var(--font-display); font-size: 0.75em; letter-spacing: 2px; margin-bottom: 8px; }
+        .spec-card .spec-row { display: flex; justify-content: space-between; font-size: 0.85em; padding: 3px 0; border-bottom: 1px solid rgba(0, 255, 65, 0.05); }
+        .spec-card .spec-row:last-child { border-bottom: none; }
+        .spec-card .spec-val { color: var(--text-bright); font-weight: bold; }
+
+        /* ===== CONNECTION CARDS ===== */
+        .conn-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 6px; padding: 14px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+        .conn-card:hover { border-color: var(--cyan); box-shadow: 0 0 15px var(--cyan-glow); }
+        .conn-label {
+            font-family: var(--font-display);
+            font-size: 0.8em; letter-spacing: 2px;
+            color: var(--cyan); margin-bottom: 4px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .conn-type-badge {
+            font-family: var(--font-mono);
+            font-size: 0.75em; padding: 2px 6px;
+            border-radius: 3px; letter-spacing: 1px; font-weight: bold;
+        }
+        .conn-type-badge.srt { background: rgba(255, 170, 0, 0.15); color: var(--orange); border: 1px solid rgba(255, 170, 0, 0.3); }
+        .conn-type-badge.rtmp { background: rgba(0, 255, 65, 0.15); color: var(--neon); border: 1px solid rgba(0, 255, 65, 0.3); }
+        .conn-desc { font-size: 0.75em; color: var(--text-dim); margin-bottom: 8px; }
+        .conn-val {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 8px; border-radius: 3px;
+            font-size: 0.8em; color: var(--neon);
+            word-break: break-all;
+            border: 1px solid var(--border);
+        }
+
+        /* ===== BOTTOM NAV ===== */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: rgba(24, 24, 27, 0.95);
+            border-top: 1px solid var(--border-bright);
+            display: flex; height: 56px;
+            z-index: 9999;
+            backdrop-filter: blur(15px);
+        }
+        .bottom-nav::before {
+            content: ''; position: absolute; top: -1px; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--neon), transparent);
+            box-shadow: 0 0 10px var(--neon-glow);
+        }
+        .bottom-nav-item {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            text-decoration: none; color: var(--text-dim);
+            gap: 4px; transition: color 0.2s;
+            font-family: var(--font-mono);
+        }
+        .bottom-nav-item:hover { color: var(--text); }
+        .bottom-nav-item.active { color: var(--neon); }
+        .nav-icon { font-size: 18px; line-height: 1; }
+        .nav-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; }
+
+        /* ===== HEX DECO ===== */
+        .hex-deco {
+            position: fixed; top: 50%; right: -80px;
+            width: 160px; height: 160px;
+            border: 1px solid rgba(0, 255, 65, 0.05);
+            transform: rotate(45deg); border-radius: 20px;
+            z-index: 0; pointer-events: none;
+        }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed; top: 50px; right: 20px;
+            background: rgba(255, 170, 0, 0.15);
+            border: 1px solid var(--orange);
+            color: var(--orange);
+            padding: 12px 20px; border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.85em; z-index: 99999;
+            animation: toast-in 0.3s ease;
+            box-shadow: 0 0 20px var(--orange-glow);
+        }
+        @keyframes toast-in { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 600px) {
+            .logo { font-size: 1.4em; letter-spacing: 3px; }
+            .cmd-grid { grid-template-columns: 1fr; }
+            .specs-grid { grid-template-columns: 1fr; }
+            .status-bar { flex-direction: column; align-items: center; gap: 5px; }
+            .stream-grid { grid-template-columns: 1fr; }
+            .tab-nav { flex-wrap: wrap; }
+            .tab-btn { flex: 1 1 45%; padding: 10px 4px; font-size: 0.7em; }
+        }
+
+        /* ===== CURSOR BLINK ===== */
+        .cursor-blink::after { content: '█'; animation: blink 1s step-end infinite; color: var(--neon); }
+        @keyframes blink { 50% { opacity: 0; } }
+    </style>
+</head>
+
+<body>
+    <!-- DEMO MODE BANNER -->
+    <div class="demo-banner">⚠ DEMO MODE — READ ONLY — NO LIVE CONNECTIONS ⚠</div>
+
+    <canvas id="matrix-rain"></canvas>
+
+    <div class="hex-deco"></div>
+    <div class="hex-deco" style="top:70%; right: auto; left: -60px;"></div>
+
+    <div class="main-container">
+
+        <!-- HEADER -->
+        <div class="header">
+            <div style="display:flex;align-items:center;justify-content:center;gap:20px;">
+                <div class="logo glitch" data-text="CASTNET" style="margin-bottom: 0;">
+                    CASTNET
+                    <span class="sub">// MISSION CONTROL v5.0 — DEMO //</span>
+                </div>
+            </div>
+            <div class="status-bar">
+                <span><span class="status-indicator online"></span>CORE: ONLINE</span>
+                <span><span class="status-indicator online"></span>OBS: CONNECTED</span>
+                <span style="display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border:1px solid #1e3a2a;border-radius:4px;background:rgba(0,40,20,0.4);font-size:11px;letter-spacing:0.15em;">
+                    <span style="width:8px;height:8px;border-radius:50%;background:var(--neon);display:inline-block;box-shadow:0 0 6px var(--neon-glow);"></span>
+                    <span style="color:var(--neon);">MASTER: ON</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- TAB NAV -->
+        <div class="tab-nav">
+            <button onclick="switchTab('cmd')" class="tab-btn active" id="tab-cmd">⌘ COMMAND</button>
+            <button onclick="switchTab('conn')" class="tab-btn" id="tab-conn">⚡ CONNECTIONS</button>
+            <button onclick="switchTab('streams')" class="tab-btn" id="tab-streams">📡 STREAMS</button>
+            <button onclick="switchTab('specs')" class="tab-btn" id="tab-specs">⚙ SYSTEM</button>
+        </div>
+
+        <!-- ========== VIEW: COMMAND CENTER ========== -->
+        <div id="view-cmd" class="tab-view active">
+
+            <!-- Command Buttons -->
+            <div class="cmd-grid">
+                <button onclick="demoToast('Pre-flight check passed. All systems GREEN.')" class="cmd-btn ready">
+                    <span class="emoji">🚀</span>SYSTEM READY
+                </button>
+                <button onclick="demoToast('Note logged to ops matrix.')" class="cmd-btn note">
+                    <span class="emoji">📝</span>LOG NOTE
+                </button>
+                <button onclick="demoToast('Clip saved: source_clip_042.mp4 (37s)')" class="cmd-btn clip">
+                    <span class="emoji">💾</span>CLIP PRE-OBS
+                </button>
+                <button onclick="demoToast('Clip saved: program_clip_019.mp4 (22s)')" class="cmd-btn clip-alt">
+                    <span class="emoji">🎬</span>CLIP POST-OBS
+                </button>
+                <button onclick="demoToast('DEMO MODE — Emergency reset disabled.')" class="cmd-btn danger full-width">
+                    <span class="emoji">⚠️</span>EMERGENCY RESET // KILL ALL
+                </button>
+            </div>
+
+            <!-- Fleet Status Bar -->
+            <div class="fleet-bar">
+                <span class="fleet-title">TAILSCALE MESH</span>
+                <div class="fleet-peer"><span class="machine-dot online"></span> greenmachine</div>
+                <div class="fleet-peer"><span class="machine-dot online"></span> pi-node-brody</div>
+                <div class="fleet-peer"><span class="machine-dot online"></span> pi-node-scott</div>
+                <div class="fleet-peer"><span class="machine-dot online"></span> iphone-brody</div>
+                <div class="fleet-peer"><span class="machine-dot online"></span> ipad-control</div>
+                <div class="fleet-peer"><span class="machine-dot offline"></span> pi-node-byron</div>
+            </div>
+
+            <!-- Recording Path -->
+            <div class="rec-path-bar">
+                <span class="rec-icon">⏺</span>
+                <span class="rec-label">RECORDING TO:</span>
+                <span class="rec-value">E:\CastNET\recordings\2026-04-13_tournament</span>
+            </div>
+
+            <!-- Live Signal Matrix -->
+            <div class="section-header">LIVE SIGNAL MATRIX <span class="line"></span></div>
+            <div class="stream-grid">
+                <div class="stream-card live">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span class="stream-name">CAM-1 BOW</span>
+                        <span class="badge live"><span class="live-pulse"></span>LIVE</span>
+                    </div>
+                    <div class="stream-meta">SRT · 1080p30 · 6,200 Kbps · 14ms latency</div>
+                </div>
+                <div class="stream-card live">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span class="stream-name">CAM-2 STERN</span>
+                        <span class="badge live"><span class="live-pulse"></span>LIVE</span>
+                    </div>
+                    <div class="stream-meta">SRT · 1080p30 · 5,800 Kbps · 18ms latency</div>
+                </div>
+                <div class="stream-card live">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span class="stream-name">CAM-3 UNDERWATER</span>
+                        <span class="badge live"><span class="live-pulse"></span>LIVE</span>
+                    </div>
+                    <div class="stream-meta">RTMP · 720p30 · 3,500 Kbps · 22ms latency</div>
+                </div>
+                <div class="stream-card live">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span class="stream-name">CAM-4 ELECTRONICS</span>
+                        <span class="badge live"><span class="live-pulse"></span>LIVE</span>
+                    </div>
+                    <div class="stream-meta">SRT · 1080p30 · 6,000 Kbps · 12ms latency</div>
+                </div>
+                <div class="stream-card backup">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span class="stream-name">CAM-5 GOPRO</span>
+                        <span class="badge backup">STANDBY</span>
+                    </div>
+                    <div class="stream-meta">SRT · 1080p30 · Waiting for signal</div>
+                </div>
+                <div class="stream-card live">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <span class="stream-name">PROGRAM OUT</span>
+                        <span class="badge live"><span class="live-pulse"></span>LIVE</span>
+                    </div>
+                    <div class="stream-meta">RTMP → YouTube · 6,000 Kbps · 02:14:37 uptime</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== VIEW: CONNECTIONS ========== -->
+        <div id="view-conn" class="tab-view">
+            <div class="section-header">SIGNAL INPUTS → TO HQ <span class="line"></span></div>
+            <div class="conn-card">
+                <div class="conn-label"><span class="conn-type-badge srt">SRT</span> CAM-1 BOW (Larix → Pi Node)</div>
+                <div class="conn-desc">Phone camera on bow mount → Pi-Node-Brody SRT ingest</div>
+                <div class="conn-val">srt://100.87.53.6:8890?streamid=publish:brody/cam1</div>
+            </div>
+            <div class="conn-card">
+                <div class="conn-label"><span class="conn-type-badge srt">SRT</span> CAM-2 STERN (GoPro → Pi)</div>
+                <div class="conn-desc">GoPro Hero 12 rear mount → Pi-Node-Brody secondary</div>
+                <div class="conn-val">srt://100.87.53.6:8890?streamid=publish:brody/cam2</div>
+            </div>
+            <div class="conn-card">
+                <div class="conn-label"><span class="conn-type-badge rtmp">RTMP</span> CAM-3 UNDERWATER (Aqua-Vu)</div>
+                <div class="conn-desc">Aqua-Vu camera RTMP push to local ingest</div>
+                <div class="conn-val">rtmp://100.87.53.6:1935/brody/underwater</div>
+            </div>
+            <div class="conn-card">
+                <div class="conn-label"><span class="conn-type-badge srt">SRT</span> CAM-4 ELECTRONICS (iPad mount)</div>
+                <div class="conn-desc">iPad displaying Humminbird → screen capture to Pi</div>
+                <div class="conn-val">srt://100.87.53.6:8890?streamid=publish:brody/electronics</div>
+            </div>
+
+            <div class="section-header" style="margin-top:25px;">SIGNAL OUTPUTS ← FROM HQ <span class="line"></span></div>
+            <div class="conn-card">
+                <div class="conn-label"><span class="conn-type-badge rtmp">RTMP</span> YOUTUBE LIVE</div>
+                <div class="conn-desc">Program output → YouTube RTMP ingest</div>
+                <div class="conn-val">rtmp://a.rtmp.youtube.com/live2/****-****-****-****</div>
+            </div>
+            <div class="conn-card">
+                <div class="conn-label"><span class="conn-type-badge rtmp">RTMP</span> FACEBOOK LIVE (BACKUP)</div>
+                <div class="conn-desc">Simultaneous restream to Facebook page</div>
+                <div class="conn-val">rtmp://live-api-s.facebook.com:443/rtmp/FB-****-****</div>
+            </div>
+        </div>
+
+        <!-- ========== VIEW: STREAMS ========== -->
+        <div id="view-streams" class="tab-view">
+            <div class="section-header">ACTIVE ANGLERS <span class="line"></span></div>
+
+            <div class="card live">
+                <div class="card-label"><span class="icon">🎣</span> ANGLER: JACOB WHEELER</div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                    <span style="color:var(--neon);font-family:var(--font-display);font-size:0.85em;letter-spacing:2px;"><span class="live-pulse"></span>STREAMING</span>
+                    <span style="font-size:0.8em;color:var(--text-dim);">02:14:37 uptime</span>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.8em;">
+                    <div>Cameras: <span style="color:var(--neon);">4 / 5 active</span></div>
+                    <div>Bitrate: <span style="color:var(--cyan);">6,200 Kbps</span></div>
+                    <div>Platform: <span style="color:var(--red);">YouTube Live</span></div>
+                    <div>Viewers: <span style="color:var(--orange);">1,247</span></div>
+                </div>
+            </div>
+
+            <div class="card backup">
+                <div class="card-label"><span class="icon">🎣</span> ANGLER: SCOTT MARTIN</div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                    <span style="color:var(--orange);font-family:var(--font-display);font-size:0.85em;letter-spacing:2px;">STANDBY</span>
+                    <span style="font-size:0.8em;color:var(--text-dim);">Pre-tournament prep</span>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.8em;">
+                    <div>Cameras: <span style="color:var(--orange);">0 / 3 active</span></div>
+                    <div>Hardware: <span style="color:var(--neon);">Deployed</span></div>
+                    <div>Platform: <span style="color:var(--text-dim);">—</span></div>
+                    <div>Next stream: <span style="color:var(--cyan);">Tomorrow 5:30 AM</span></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-label"><span class="icon">🎣</span> ANGLER: BRANDON PALANIUK</div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                    <span style="color:var(--text-dim);font-family:var(--font-display);font-size:0.85em;letter-spacing:2px;">OFFLINE</span>
+                    <span style="font-size:0.8em;color:var(--text-dim);">Last active: 3h ago</span>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.8em;">
+                    <div>Cameras: <span style="color:var(--text-dim);">0 / 4 active</span></div>
+                    <div>Hardware: <span style="color:var(--neon);">Deployed</span></div>
+                    <div>Clips today: <span style="color:var(--purple);">12</span></div>
+                    <div>Viewers (peak): <span style="color:var(--orange);">3,812</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== VIEW: SYSTEM SPECS ========== -->
+        <div id="view-specs" class="tab-view">
+            <div class="section-header">SIGNAL STANDARDS <span class="line"></span></div>
+            <div class="specs-grid">
+                <div class="spec-card" style="border-color: rgba(0,229,255,0.2);">
+                    <h4 style="color:var(--cyan);">◉ 1080P STANDARD</h4>
+                    <div class="spec-row"><span>RESOLUTION</span><span class="spec-val">1920×1080</span></div>
+                    <div class="spec-row"><span>FRAMERATE</span><span class="spec-val">30 FPS</span></div>
+                    <div class="spec-row"><span>BITRATE</span><span class="spec-val">6000 Kbps</span></div>
+                    <div class="spec-row"><span>KEYFRAME</span><span class="spec-val">2 sec</span></div>
+                </div>
+                <div class="spec-card" style="border-color: rgba(213,0,249,0.2);">
+                    <h4 style="color:var(--purple);">◈ 4K QUALITY</h4>
+                    <div class="spec-row"><span>RESOLUTION</span><span class="spec-val">3840×2160</span></div>
+                    <div class="spec-row"><span>FRAMERATE</span><span class="spec-val">30 FPS</span></div>
+                    <div class="spec-row"><span>BITRATE</span><span class="spec-val">20,000 Kbps</span></div>
+                    <div class="spec-row"><span>KEYFRAME</span><span class="spec-val">2 sec</span></div>
+                </div>
+            </div>
+
+            <div class="section-header" style="margin-top:20px;">HARDWARE FLEET <span class="line"></span></div>
+            <div class="card live">
+                <div class="card-label"><span class="icon">🖥</span> GREENMACHINE — HQ SERVER</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.82em;">
+                    <div>CPU: <span style="color:var(--neon);">AMD Ryzen 9 5900X</span></div>
+                    <div>GPU: <span style="color:var(--purple);">RTX 3080 Ti</span></div>
+                    <div>RAM: <span style="color:var(--cyan);">64GB DDR4</span></div>
+                    <div>Storage: <span style="color:var(--orange);">4TB NVMe + 12TB HDD</span></div>
+                    <div>OS: <span style="color:var(--text-dim);">Windows 11 Pro</span></div>
+                    <div>Uptime: <span style="color:var(--neon);">14d 7h 32m</span></div>
+                </div>
+            </div>
+            <div class="card live">
+                <div class="card-label"><span class="icon">🥧</span> PI-NODE-BRODY — FIELD UNIT</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.82em;">
+                    <div>Device: <span style="color:var(--neon);">Raspberry Pi 5</span></div>
+                    <div>Role: <span style="color:var(--cyan);">SRT Ingest + Relay</span></div>
+                    <div>Network: <span style="color:var(--orange);">Starlink + T-Mobile</span></div>
+                    <div>Status: <span style="color:var(--neon);">ACTIVE</span></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-label"><span class="icon">📊</span> AI SERVICES</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.82em;">
+                    <div>SAM Watchdog: <span style="color:var(--neon);">ACTIVE</span></div>
+                    <div>BRO AI Flow: <span style="color:var(--neon);">ONLINE</span></div>
+                    <div>Content Engine: <span style="color:var(--neon);">RUNNING</span></div>
+                    <div>Clip Processor: <span style="color:var(--cyan);">IDLE</span></div>
+                    <div>Sponsor Auto: <span style="color:var(--neon);">ARMED</span></div>
+                    <div>Fish Scoring: <span style="color:var(--orange);">STANDBY</span></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <nav class="bottom-nav">
+        <a href="#" class="bottom-nav-item active" onclick="switchTab('cmd');return false;">
+            <span class="nav-icon">&#128202;</span>
+            <span class="nav-label">DASHBOARD</span>
+        </a>
+        <a href="#" class="bottom-nav-item" onclick="switchTab('conn');return false;">
+            <span class="nav-icon">⚡</span>
+            <span class="nav-label">CONNECT</span>
+        </a>
+        <a href="#" class="bottom-nav-item" onclick="switchTab('streams');return false;">
+            <span class="nav-icon">📡</span>
+            <span class="nav-label">STREAMS</span>
+        </a>
+        <a href="#" class="bottom-nav-item" onclick="switchTab('specs');return false;">
+            <span class="nav-icon">⚙</span>
+            <span class="nav-label">SYSTEM</span>
+        </a>
+    </nav>
+
+    <script>
+        // ===== MATRIX RAIN =====
+        const canvas = document.getElementById('matrix-rain');
+        const ctx = canvas.getContext('2d');
+
+        function resizeMatrix() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeMatrix();
+        window.addEventListener('resize', resizeMatrix);
+
+        const chars = 'CASTNET01アイウエオカキクケコサシスセソ'.split('');
+        const fontSize = 14;
+        let columns, drops;
+
+        function initDrops() {
+            columns = Math.floor(canvas.width / fontSize);
+            drops = Array(columns).fill(1);
+        }
+        initDrops();
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(14, 14, 16, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#00ff41';
+            ctx.font = fontSize + 'px monospace';
+            for (let i = 0; i < drops.length; i++) {
+                const text = chars[Math.floor(Math.random() * chars.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 40);
+
+        // ===== TAB SWITCHING =====
+        function switchTab(id) {
+            document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.bottom-nav-item').forEach(n => n.classList.remove('active'));
+
+            const view = document.getElementById('view-' + id);
+            const tab = document.getElementById('tab-' + id);
+            if (view) view.classList.add('active');
+            if (tab) tab.classList.add('active');
+        }
+
+        // ===== DEMO TOAST =====
+        function demoToast(msg) {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+
+            const t = document.createElement('div');
+            t.className = 'toast';
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+
+        // ===== SIMULATED LATENCY JITTER =====
+        function jitterLatency() {
+            document.querySelectorAll('.stream-meta').forEach(el => {
+                const text = el.textContent;
+                const match = text.match(/(\d+)ms latency/);
+                if (match) {
+                    const base = parseInt(match[1]);
+                    const jitter = base + Math.floor(Math.random() * 8) - 4;
+                    el.textContent = text.replace(/\d+ms latency/, Math.max(5, jitter) + 'ms latency');
+                }
+            });
+        }
+        setInterval(jitterLatency, 2000);
+
+        // ===== SIMULATED UPTIME COUNTER =====
+        let uptimeSeconds = 2 * 3600 + 14 * 60 + 37;
+        function tickUptime() {
+            uptimeSeconds++;
+            const h = String(Math.floor(uptimeSeconds / 3600)).padStart(2, '0');
+            const m = String(Math.floor((uptimeSeconds % 3600) / 60)).padStart(2, '0');
+            const s = String(uptimeSeconds % 60).padStart(2, '0');
+            const timeStr = h + ':' + m + ':' + s;
+
+            document.querySelectorAll('.stream-meta').forEach(el => {
+                if (el.textContent.includes('uptime')) {
+                    el.textContent = el.textContent.replace(/\d{2}:\d{2}:\d{2} uptime/, timeStr + ' uptime');
+                }
+            });
+            document.querySelectorAll('[style]').forEach(el => {
+                if (el.textContent && el.textContent.match(/^\d{2}:\d{2}:\d{2} uptime$/)) {
+                    el.textContent = timeStr + ' uptime';
+                }
+            });
+        }
+        setInterval(tickUptime, 1000);
+    </script>
+</body>
+</html>
