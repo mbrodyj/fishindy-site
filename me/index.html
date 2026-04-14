@@ -145,29 +145,17 @@ body::after {
     position: relative;
 }
 
-.title {
-    font-family: var(--sans);
-    font-size: clamp(2.2em, 6vw, 4.5em);
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    line-height: 0.95;
-    color: var(--ink);
-    max-width: 900px;
-    margin-bottom: 22px;
-}
-.title .stroke {
-    -webkit-text-stroke: 1px var(--ink);
-    color: transparent;
-}
-.title .glow {
-    color: var(--accent);
-    text-shadow: 0 0 30px var(--accent-dim);
+.hero-logo {
+    max-width: min(380px, 65vw);
+    height: auto;
+    margin-bottom: 28px;
+    filter: drop-shadow(0 0 20px rgba(0,255,136,0.15));
 }
 
 .subtitle {
-    font-size: 12px;
-    letter-spacing: 4px;
-    color: var(--ink-dim);
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--ink-faint);
     text-transform: uppercase;
     max-width: 580px;
     line-height: 1.8;
@@ -318,11 +306,9 @@ body::after {
     </header>
 
     <section class="center">
-        <h1 class="title">
-            <span class="glow">FISH<span class="stroke">INDY</span></span>
-        </h1>
+        <img src="/assets/castnet_wordmark.png" alt="CastNET" class="hero-logo">
 
-        <p class="subtitle" id="subtitle-line">Indianapolis &rarr; Satellite Beach &rarr; Islamorada</p>
+        <p class="subtitle" id="subtitle-line">Indianapolis &rarr; Bloomington &rarr; Chattanooga &rarr; Satellite Beach</p>
 
         <nav class="nodes">
             <a class="node" href="https://castnet.live" target="_blank" rel="noopener">CASTNET</a>
