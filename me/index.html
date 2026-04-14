@@ -351,12 +351,12 @@ body::after {
         <div class="prompt" id="prompt-line">&gt; <span id="prompt-text">IDENTIFIER LOADED</span><span class="caret"></span></div>
 
         <h1 class="title">
-            <span class="stroke">we don't build</span><br>
-            <span class="glow">a brand.</span><br>
-            <span class="stroke">we build</span> a signal.
+            <span class="stroke">born on</span><br>
+            <span class="glow">the water.</span><br>
+            <span class="stroke">built</span> different.
         </h1>
 
-        <p class="subtitle" id="subtitle-line">Indianapolis &middot; On the water &middot; Built in the dark</p>
+        <p class="subtitle" id="subtitle-line">Indianapolis &middot; Third generation &middot; Still grinding</p>
 
         <div class="rotator" id="rotator">
             <span class="bracket">//</span> initializing transmission...
@@ -364,7 +364,7 @@ body::after {
 
         <nav class="nodes">
             <a class="node" href="https://fishindy.com/marketing" target="_blank" rel="noopener">CASTNET</a>
-            <a class="node" href="https://instagram.com/fish_indy" target="_blank" rel="noopener">SIGNAL</a>
+            <a class="node" href="https://instagram.com/fish_indy" target="_blank" rel="noopener">INSTAGRAM</a>
             <a class="node" href="#" data-locked onclick="openLocked('family'); return false;">FAMILY</a>
             <a class="node" href="#" data-locked onclick="openLocked('archive'); return false;">ARCHIVE</a>
         </nav>
@@ -501,16 +501,16 @@ const CTX = (function buildContext() {
     if (subEl) {
         // Context-varied subtitle. Every branch is honest flavor, never filler.
         const subs = {
-            deep_night:  "4AM &middot; empty ramps &middot; the good hours",
+            deep_night:  "4AM &middot; empty ramps &middot; third generation",
             dawn:        "Dawn launch &middot; on the water &middot; before the wind",
             morning:     "Indianapolis &middot; on the water &middot; already moving",
             midday:      "Indianapolis &middot; glare off the lake &middot; grind mode",
-            afternoon:   "Indianapolis &middot; wind and stain &middot; read the water",
-            golden:      "Golden hour &middot; no filter needed &middot; built in the light",
+            afternoon:   "Indianapolis &middot; wind picked up &middot; still out here",
+            golden:      "Golden hour &middot; three generations deep &middot; same water",
             evening:     "After sunset &middot; on the water &middot; where the stories live",
-            late_night:  "Night shift &middot; feed is quiet &middot; signal is loud",
+            late_night:  "Indianapolis &middot; late &middot; still grinding",
         };
-        subEl.innerHTML = subs[CTX.period] || "Indianapolis &middot; On the water &middot; Built in the dark";
+        subEl.innerHTML = subs[CTX.period] || "Indianapolis &middot; Third generation &middot; Still grinding";
     }
 })();
 
@@ -523,11 +523,11 @@ const MESSAGES = [
     CTX.deviceLine,
     "// the water keeps the receipts.",
     "// you can't fake what sonar saw.",
-    "// the boat, the dog, the grind, the grandfather.",
+    "// the son, the dad, the grandfather. three deep.",
     "// most of this isn't for sale.",
-    "// signal &gt; noise. always.",
     "// if you know, you know. if you don't, you will.",
     "// built by someone who actually fishes.",
+    "// third generation. same water. new tools.",
     "// node " + CTX.fp + " &middot; visit " + CTX.visit + " &middot; " + CTX.clock
 ];
 

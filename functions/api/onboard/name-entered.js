@@ -82,6 +82,9 @@ export async function onRequestPost(context) {
         `When: ${new Date(now).toISOString()}`,
     ].filter(Boolean).join('\n');
 
+    // Log lead to Supabase (best-effort, fire and forget)
+    context.waitUntil(logLeadToSupabase(env, name, ip, country, city, referer));
+
     // Telegram sendMessage
     const token = env.TELEGRAM_BOT_TOKEN;
     const chat = env.TELEGRAM_CHAT_ID;
@@ -116,6 +119,32 @@ export async function onRequestPost(context) {
     return new Response(JSON.stringify({ ok: true, notified: true }), {
         status: 200, headers: { 'Content-Type': 'application/json' }
     });
+}
+
+// Also log to Supabase leads table (best-effort, don't block response)
+async function logLeadToSupabase(env, name, ip, country, city, referer) {
+    if (!env.SUPABASE_URL || !env.SUPABASE_ANON_KEY) return;
+    try {
+        await fetch(`${env.SUPABASE_URL}/rest/v1/leads`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'apikey': env.SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${env.SUPABASE_ANON_KEY}`,
+                'Prefer': 'return=minimal',
+            },
+            body: JSON.stringify({
+                type: 'onboard',
+                name: name,
+                ip: ip,
+                country: country || null,
+                city: city || null,
+                referrer: referer,
+            }),
+        });
+    } catch (e) {
+        console.log(`[name-entered] Supabase lead insert fail: ${e.message}`);
+    }
 }
 
 // Block non-POST verbs cleanly
