@@ -145,23 +145,6 @@ body::after {
     position: relative;
 }
 
-.prompt {
-    font-size: 11px;
-    letter-spacing: 3px;
-    color: var(--ink-dim);
-    text-transform: uppercase;
-    margin-bottom: 26px;
-}
-.prompt .caret {
-    display: inline-block;
-    width: 8px;
-    height: 12px;
-    background: var(--accent);
-    vertical-align: middle;
-    margin-left: 4px;
-    animation: blink 1s steps(2) infinite;
-}
-
 .title {
     font-family: var(--sans);
     font-size: clamp(2.2em, 6vw, 4.5em);
@@ -190,19 +173,6 @@ body::after {
     line-height: 1.8;
     margin-bottom: 50px;
 }
-
-/* ===== Cryptic quotes ===== */
-.rotator {
-    font-family: var(--mono);
-    font-size: 13px;
-    color: var(--accent);
-    letter-spacing: 1px;
-    min-height: 1.6em;
-    max-width: 620px;
-    margin-bottom: 50px;
-    opacity: 0.88;
-}
-.rotator .bracket { color: var(--ink-dim); }
 
 /* ===== Hidden nodes (cryptic links) ===== */
 .nodes {
@@ -344,23 +314,15 @@ body::after {
 
     <header class="topbar">
         <div class="logo">FISH<span class="dot">_</span>INDY</div>
-        <div class="status" id="status-line">NODE ACTIVE</div>
+        <div class="status" id="status-line"></div>
     </header>
 
     <section class="center">
-        <div class="prompt" id="prompt-line">&gt; <span id="prompt-text">IDENTIFIER LOADED</span><span class="caret"></span></div>
-
         <h1 class="title">
-            <span class="stroke">born on</span><br>
-            <span class="glow">the water.</span><br>
-            <span class="stroke">built</span> different.
+            <span class="glow">FISH<span class="stroke">INDY</span></span>
         </h1>
 
-        <p class="subtitle" id="subtitle-line">Indianapolis &middot; Third generation &middot; Still grinding</p>
-
-        <div class="rotator" id="rotator">
-            <span class="bracket">//</span> initializing transmission...
-        </div>
+        <p class="subtitle" id="subtitle-line">Indianapolis</p>
 
         <nav class="nodes">
             <a class="node" href="https://fishindy.com/marketing" target="_blank" rel="noopener">CASTNET</a>
@@ -372,7 +334,7 @@ body::after {
 
     <footer class="coords">
         <div id="coords-line">LAT 39.7684&deg; N &middot; LON 86.1581&deg; W</div>
-        <div class="hint">type <span style="color:var(--accent)">'help'</span> to go deeper</div>
+        <div class="hint"></div>
     </footer>
 
 </main>
@@ -393,146 +355,19 @@ body::after {
 </div>
 
 <script>
-// =====================================================================
-// PERSONALIZATION ENGINE
-// Uses every signal we can read client-side: time, visit count, referrer,
-// device, timezone, language, IP (via free geo API if reachable).
-// If any signal is missing, the fallback copy is written to still feel
-// badass — never "welcome, anonymous user".
-// =====================================================================
-const CTX = (function buildContext() {
-    const now = new Date();
-    const hr = now.getHours();
-    let period, timeLine;
-    if (hr < 5)       { period = 'deep_night';  timeLine = "// 4am. you're up because you have to be."; }
-    else if (hr < 8)  { period = 'dawn';        timeLine = "// dawn. this is the launch window."; }
-    else if (hr < 11) { period = 'morning';     timeLine = "// mid-morning. already behind schedule."; }
-    else if (hr < 14) { period = 'midday';      timeLine = "// noon. everybody else is at lunch."; }
-    else if (hr < 17) { period = 'afternoon';   timeLine = "// wind's up. water's stained."; }
-    else if (hr < 20) { period = 'golden';      timeLine = "// golden hour. it's not about the photo."; }
-    else if (hr < 23) { period = 'evening';     timeLine = "// post-dinner. the best stories start now."; }
-    else              { period = 'late_night';  timeLine = "// late. the feed is quiet. good."; }
-
-    // Referrer classification
-    const ref = (document.referrer || '').toLowerCase();
-    let source = 'direct', sourceLine = "// you typed the address. respect.";
-    if (ref.includes('instagram'))      { source='ig';       sourceLine = "// signal received from the gram."; }
-    else if (ref.includes('tiktok'))    { source='tt';       sourceLine = "// tiktok pipeline. welcome."; }
-    else if (ref.includes('x.com') || ref.includes('twitter')) { source='x'; sourceLine = "// routed in from x. keep moving."; }
-    else if (ref.includes('youtube'))   { source='yt';       sourceLine = "// youtube trail. you watched. you clicked."; }
-    else if (ref.includes('facebook') || ref.includes('fb.com')) { source='fb'; sourceLine = "// facebook funnel. rare these days."; }
-    else if (ref.includes('google') || ref.includes('bing') || ref.includes('duckduckgo')) {
-        source='search'; sourceLine = "// search brought you. interesting query.";
-    }
-    else if (ref.includes('castnet'))   { source='castnet';  sourceLine = "// routed through castnet. authorized."; }
-    else if (ref)                        { source='other';    sourceLine = "// referral chain: " + (new URL(ref).hostname || 'unknown'); }
-
-    // Visit count (localStorage — persists across sessions same device)
+// Silent tracking — no visible output, just data collection for future use
+const CTX = (function() {
     let visit = 1;
     try {
         visit = parseInt(localStorage.getItem('fi_visits') || '0', 10) + 1;
         localStorage.setItem('fi_visits', String(visit));
-        if (!localStorage.getItem('fi_first_seen')) {
+        if (!localStorage.getItem('fi_first_seen'))
             localStorage.setItem('fi_first_seen', String(Date.now()));
-        }
-    } catch(e) { visit = 1; }
-
-    let visitLine, statusLabel;
-    if (visit === 1)       { visitLine = "// first contact.";                       statusLabel = 'NODE ACTIVE'; }
-    else if (visit <= 3)   { visitLine = "// welcome back.";                        statusLabel = 'NODE RECOGNIZED'; }
-    else if (visit <= 9)   { visitLine = "// you keep coming back. noted.";         statusLabel = 'NODE RETURNING x' + visit; }
-    else if (visit <= 24)  { visitLine = "// you live here now.";                   statusLabel = 'TRUSTED NODE'; }
-    else                   { visitLine = "// " + visit + " visits. you're a ghost in my logs."; statusLabel = 'GHOST NODE'; }
-
-    // Device / viewport class
-    const isMobile = window.matchMedia && window.matchMedia('(max-width: 640px)').matches;
-    const deviceLine = isMobile
-        ? "// tiny screen. big energy."
-        : "// proper rig. proceed.";
-
-    // Timezone
-    let tz = 'unknown';
-    try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'unknown'; } catch(e){}
-    const homeZone = /Indiana|New_York|Chicago|Detroit/.test(tz);
-    const tzLine = homeZone
-        ? "// local node. home frequency."
-        : "// transmission from " + tz.replace(/_/g,' ') + ". range: international.";
-
-    // Session fingerprint — NOT identifying, just a stable-ish hex for flavor
-    let fp = '';
-    try {
-        const seed = (navigator.userAgent || '') + (navigator.language || '') + tz + screen.width + 'x' + screen.height;
-        let h = 0;
-        for (let i = 0; i < seed.length; i++) { h = ((h << 5) - h) + seed.charCodeAt(i); h |= 0; }
-        fp = Math.abs(h).toString(16).toUpperCase().padStart(6, '0').slice(0, 6);
-    } catch(e) { fp = 'XXXXXX'; }
-
-    // HH:MM local time for the status line
-    const hh = String(now.getHours()).padStart(2, '0');
-    const mm = String(now.getMinutes()).padStart(2, '0');
-    const clock = hh + ':' + mm;
-
-    return {
-        period, timeLine, source, sourceLine, visit, visitLine, statusLabel,
-        isMobile, deviceLine, tz, tzLine, fp, clock, geo: null
-    };
+    } catch(e) {}
+    return { visit, geo: null };
 })();
 
-// Paint the static context into the DOM immediately (no placeholder flash)
-(function paintStaticContext(){
-    const statusEl = document.getElementById('status-line');
-    if (statusEl) statusEl.textContent = CTX.statusLabel + ' · ' + CTX.clock + ' · ' + CTX.fp;
-
-    const promptEl = document.getElementById('prompt-text');
-    if (promptEl) {
-        // Rotate a few opening prompts keyed to context. No fallback filler —
-        // each of these reads badass on its own.
-        const prompts = [
-            "IDENTIFIER LOADED",
-            "CHANNEL OPEN",
-            "LINE CLEAR",
-            "NODE " + CTX.fp + " LINKED",
-            CTX.period === 'deep_night' ? "DARK MODE ACKNOWLEDGED" : "SIGNAL LOCKED"
-        ];
-        promptEl.textContent = prompts[CTX.visit % prompts.length];
-    }
-
-    const subEl = document.getElementById('subtitle-line');
-    if (subEl) {
-        // Context-varied subtitle. Every branch is honest flavor, never filler.
-        const subs = {
-            deep_night:  "4AM &middot; empty ramps &middot; third generation",
-            dawn:        "Dawn launch &middot; on the water &middot; before the wind",
-            morning:     "Indianapolis &middot; on the water &middot; already moving",
-            midday:      "Indianapolis &middot; glare off the lake &middot; grind mode",
-            afternoon:   "Indianapolis &middot; wind picked up &middot; still out here",
-            golden:      "Golden hour &middot; three generations deep &middot; same water",
-            evening:     "After sunset &middot; on the water &middot; where the stories live",
-            late_night:  "Indianapolis &middot; late &middot; still grinding",
-        };
-        subEl.innerHTML = subs[CTX.period] || "Indianapolis &middot; Third generation &middot; Still grinding";
-    }
-})();
-
-// ===== Rotating cryptic messages — seeded from CTX =====
-const MESSAGES = [
-    CTX.timeLine,
-    CTX.sourceLine,
-    CTX.visitLine,
-    CTX.tzLine,
-    CTX.deviceLine,
-    "// the water keeps the receipts.",
-    "// you can't fake what sonar saw.",
-    "// the son, the dad, the grandfather. three deep.",
-    "// most of this isn't for sale.",
-    "// if you know, you know. if you don't, you will.",
-    "// built by someone who actually fishes.",
-    "// third generation. same water. new tools.",
-    "// node " + CTX.fp + " &middot; visit " + CTX.visit + " &middot; " + CTX.clock
-];
-
-// Optional IP geolocation — free, no key, CORS-enabled. If it fails, we
-// silently stay on Indianapolis. No placeholder text, no "loading..." flash.
+// Geo — silently update coords with viewer's real location. No visible copy.
 (async function enrichGeo(){
     try {
         const ctrl = new AbortController();
@@ -542,7 +377,6 @@ const MESSAGES = [
         const g = await r.json();
         if (!g || !g.city) return;
         CTX.geo = g;
-        // Update coords line with the viewer's actual coords (and city), cryptic style
         const coords = document.getElementById('coords-line');
         if (coords && typeof g.latitude === 'number' && typeof g.longitude === 'number') {
             const lat = Math.abs(g.latitude).toFixed(4);
@@ -553,37 +387,8 @@ const MESSAGES = [
                 + ' &middot; LON ' + lon + '&deg; ' + ew
                 + ' &middot; ' + (g.city || '').toUpperCase();
         }
-        // Inject a geo-aware line into the rotator pool
-        const city = (g.city || '').toUpperCase();
-        const region = (g.region || '').toUpperCase();
-        if (city) {
-            MESSAGES.push("// pinging " + city + (region ? ', ' + region : '') + ". i see you.");
-        }
-        // If they're in Indy, call it out
-        if (city && /INDIANA|INDIANAPOLIS/i.test(city + ' ' + region)) {
-            MESSAGES.unshift("// local. we're probably on the same water.");
-        }
-    } catch(e) { /* silent — we already look fine without it */ }
+    } catch(e) {}
 })();
-
-let mi = 0;
-const rotator = document.getElementById('rotator');
-
-function typeMessage(msg) {
-    rotator.textContent = '';
-    let i = 0;
-    const iv = setInterval(() => {
-        if (i >= msg.length) { clearInterval(iv); return; }
-        rotator.textContent += msg[i++];
-    }, 22);
-}
-
-function cycle() {
-    typeMessage(MESSAGES[mi]);
-    mi = (mi + 1) % MESSAGES.length;
-}
-
-setTimeout(() => { cycle(); setInterval(cycle, 5200); }, 700);
 
 // ===== Locked modal =====
 const LOCKED = {
