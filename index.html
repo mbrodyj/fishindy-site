@@ -2,509 +2,471 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>fishindy.com</title>
-<meta name="description" content="CastNET — Private operations network. Tournament-grade livestream production.">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>fishindy</title>
+<meta name="description" content="">
 <meta name="robots" content="index,follow">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://bro.fishindy.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';">
-<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+
+<!-- OG -->
+<meta property="og:title" content="fishindy">
+<meta property="og:description" content="">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://fishindy.com">
+<meta property="og:image" content="https://fishindy.com/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
 <style>
-    :root {
-        --phos: #33ff33;
-        --phos-dim: #1a7a1a;
-        --phos-faint: #0a2e0a;
-        --amber: #ffb000;
-        --red: #ff3030;
-        --bg: #000000;
-        --ink: #33ff33;
-    }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+    --bg: #05070a;
+    --ink: #d8dde4;
+    --ink-dim: #5a6472;
+    --ink-faint: #2a323c;
+    --accent: #00ff88;
+    --accent-dim: rgba(0,255,136,0.35);
+    --danger: #ff3355;
+    --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: 'Inter', -apple-system, system-ui, sans-serif;
+}
 
-    html, body {
-        height: 100%;
-        background: var(--bg);
-        color: var(--ink);
-        font-family: 'IBM Plex Mono', 'JetBrains Mono', Menlo, Consolas, 'Courier New', monospace;
-        font-size: 14px;
-        line-height: 1.35;
-        overflow: hidden;
-        caret-color: var(--phos);
-        -webkit-font-smoothing: none;
-        -moz-osx-font-smoothing: unset;
-        text-rendering: geometricPrecision;
-    }
+html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 15px;
+    overflow: hidden;
+    cursor: crosshair;
+}
 
-    /* ====== Matrix rain canvas ====== */
-    #matrix {
-        position: fixed;
-        inset: 0;
-        z-index: 0;
-        opacity: 0.18;
-    }
-
-    /* ====== CRT scanlines + curvature + noise ====== */
-    .crt {
-        position: fixed;
-        inset: 0;
-        z-index: 40;
-        pointer-events: none;
-    }
-    .crt::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: repeating-linear-gradient(
+/* ===== Scanline + grain overlay ===== */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+        repeating-linear-gradient(
             0deg,
-            rgba(0,0,0,0) 0,
-            rgba(0,0,0,0) 2px,
-            rgba(0,0,0,0.18) 3px,
-            rgba(0,0,0,0.18) 3px
+            rgba(255,255,255,0.012) 0,
+            rgba(255,255,255,0.012) 1px,
+            transparent 1px,
+            transparent 3px
         );
-        mix-blend-mode: multiply;
-    }
-    .crt::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: radial-gradient(
-            ellipse at center,
-            transparent 0%,
-            transparent 55%,
-            rgba(0,0,0,0.75) 100%
-        );
-    }
+    pointer-events: none;
+    z-index: 50;
+    mix-blend-mode: overlay;
+}
 
-    /* moving scan line */
-    .scan {
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%;
-        height: 2px;
-        background: linear-gradient(90deg, transparent, rgba(51,255,51,0.18), transparent);
-        z-index: 41;
-        pointer-events: none;
-        animation: scanMove 7s linear infinite;
-    }
-    @keyframes scanMove {
-        0%   { top: -2px;    opacity: 0; }
-        5%   { opacity: 0.6; }
-        95%  { opacity: 0.6; }
-        100% { top: 100%;    opacity: 0; }
-    }
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(
+        ellipse at center,
+        transparent 0%,
+        transparent 45%,
+        rgba(0,0,0,0.65) 100%
+    );
+    pointer-events: none;
+    z-index: 51;
+}
 
-    /* ====== Layout ====== */
-    .wrap {
-        position: relative;
-        z-index: 10;
-        height: 100%;
-        padding: 20px 26px;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-    }
+/* ===== Starfield / particles ===== */
+#stars {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+}
 
-    .header {
-        display: flex;
-        justify-content: space-between;
-        font-size: 11px;
-        color: var(--phos-dim);
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        padding-bottom: 6px;
-        border-bottom: 1px solid var(--phos-faint);
-    }
-    .header .right { color: var(--phos-dim); }
-    .header .blink { animation: blink 1.2s steps(2) infinite; }
+/* ===== Main stage ===== */
+.stage {
+    position: relative;
+    height: 100%;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    z-index: 10;
+}
 
-    @keyframes blink {
-        50% { opacity: 0; }
-    }
+/* ===== Top bar ===== */
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 22px 30px;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+}
+.topbar .logo {
+    color: var(--ink);
+    font-weight: 700;
+}
+.topbar .logo .dot {
+    color: var(--accent);
+    animation: blink 1.6s steps(2) infinite;
+}
+.topbar .status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.topbar .status::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+}
 
-    /* ASCII art banner */
-    pre.banner {
-        color: var(--phos);
-        font-size: 10px;
-        line-height: 1;
-        letter-spacing: 0;
-        white-space: pre;
-        margin: 14px 0 10px;
-        text-shadow: 0 0 2px rgba(51,255,51,0.4);
-        animation: bannerFlicker 4s infinite;
-    }
-    @keyframes bannerFlicker {
-        0%, 94%, 100% { opacity: 1; }
-        95% { opacity: 0.55; }
-        96% { opacity: 1; }
-        97% { opacity: 0.7; }
-    }
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+@keyframes blink {
+    50% { opacity: 0; }
+}
 
-    /* boot sequence */
-    .boot {
-        flex: 1;
-        min-height: 0;
-        overflow-y: auto;
-        font-size: 13px;
-        color: var(--phos);
-        padding-right: 6px;
-    }
-    .boot::-webkit-scrollbar { width: 6px; }
-    .boot::-webkit-scrollbar-thumb { background: var(--phos-faint); }
-    .boot .line { white-space: pre-wrap; word-break: break-word; }
-    .boot .dim { color: var(--phos-dim); }
-    .boot .amber { color: var(--amber); }
-    .boot .red { color: var(--red); }
-    .boot .ok { color: var(--phos); }
-    .boot .tag { color: var(--phos-dim); }
+/* ===== Center content ===== */
+.center {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 0 24px;
+    position: relative;
+}
 
-    /* command input */
-    .prompt-row {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding-top: 8px;
-        border-top: 1px solid var(--phos-faint);
-        margin-top: 6px;
-        font-size: 14px;
-    }
-    .prompt-label {
-        color: var(--phos);
-        white-space: nowrap;
-    }
-    .prompt-label .host { color: var(--phos-dim); }
-    .prompt-input {
-        flex: 1;
-        background: transparent;
-        border: none;
-        outline: none;
-        color: var(--phos);
-        font-family: inherit;
-        font-size: inherit;
-        padding: 0;
-        caret-color: transparent;
-    }
-    .cursor {
-        display: inline-block;
-        width: 9px;
-        height: 15px;
-        background: var(--phos);
-        vertical-align: text-bottom;
-        animation: blink 1s steps(2) infinite;
-        margin-left: -2px;
-    }
+.hero-logo {
+    max-width: min(380px, 65vw);
+    height: auto;
+    margin-bottom: 28px;
+    filter: drop-shadow(0 0 20px rgba(0,255,136,0.15));
+}
 
-    .footer {
-        font-size: 10px;
-        color: var(--phos-faint);
-        padding-top: 8px;
-        text-align: center;
-        letter-spacing: 1px;
-    }
+.subtitle {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    max-width: 580px;
+    line-height: 1.8;
+    margin-bottom: 50px;
+}
 
-    /* selection */
-    ::selection { background: var(--phos); color: var(--bg); }
+/* ===== Hidden nodes (cryptic links) ===== */
+.nodes {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.node {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    border: 1px solid var(--ink-faint);
+    background: rgba(255,255,255,0.015);
+    padding: 10px 18px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    position: relative;
+    cursor: pointer;
+}
+.node:hover {
+    color: var(--accent);
+    border-color: var(--accent-dim);
+    background: rgba(0,255,136,0.04);
+    box-shadow: 0 0 20px rgba(0,255,136,0.08);
+}
+.node::before {
+    content: '>';
+    margin-right: 8px;
+    color: var(--ink-faint);
+    transition: color 0.2s;
+}
+.node:hover::before { color: var(--accent); }
 
-    @media (max-width: 640px) {
-        .wrap { padding: 14px 14px; }
-        pre.banner { font-size: 6.5px; }
-        .boot { font-size: 12px; }
-        .prompt-row { font-size: 13px; }
-    }
+.node[data-locked]::after {
+    content: '[LOCKED]';
+    position: absolute;
+    top: -8px;
+    right: -6px;
+    font-size: 7px;
+    background: var(--bg);
+    color: var(--danger);
+    padding: 2px 5px;
+    border: 1px solid var(--danger);
+    letter-spacing: 1px;
+}
 
-    @media (max-width: 420px) {
-        pre.banner { font-size: 5px; }
-    }
+/* ===== Bottom coordinates ===== */
+.coords {
+    display: flex;
+    justify-content: space-between;
+    padding: 22px 30px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+}
+.coords .hint { color: var(--ink-dim); }
+
+/* ===== Modal (locked node) ===== */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.88);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    padding: 30px;
+}
+.modal.show { display: flex; }
+.modal-box {
+    max-width: 440px;
+    border: 1px solid var(--accent-dim);
+    background: rgba(5,7,10,0.95);
+    padding: 32px 30px;
+    font-family: var(--mono);
+    position: relative;
+    box-shadow: 0 0 60px rgba(0,255,136,0.1);
+}
+.modal-box .x {
+    position: absolute;
+    top: 10px; right: 14px;
+    color: var(--ink-dim);
+    cursor: pointer;
+    font-size: 16px;
+    background: none;
+    border: none;
+}
+.modal-box .x:hover { color: var(--accent); }
+.modal-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--danger);
+    margin-bottom: 12px;
+}
+.modal-title {
+    font-family: var(--sans);
+    font-size: 1.4em;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 10px;
+}
+.modal-body {
+    font-size: 12px;
+    color: var(--ink-dim);
+    line-height: 1.7;
+    letter-spacing: 0.5px;
+}
+.modal-body .hl { color: var(--accent); }
+.modal-body code {
+    display: block;
+    margin-top: 16px;
+    padding: 10px 12px;
+    background: rgba(0,0,0,0.5);
+    border-left: 2px solid var(--accent);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 1px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 640px) {
+    .topbar, .coords { padding: 16px 18px; font-size: 9px; }
+    .nodes { gap: 8px; }
+    .node { padding: 9px 13px; font-size: 9px; }
+    .rotator { font-size: 11px; padding: 0 16px; }
+}
 </style>
 </head>
 <body>
 
-<canvas id="matrix"></canvas>
-<div class="crt"></div>
-<div class="scan"></div>
+<canvas id="stars"></canvas>
 
-<main class="wrap">
+<main class="stage">
 
-    <header class="header">
-        <div class="left">FISHINDY.COM // NODE GATEWAY // SERIAL 0xF15H1NDY</div>
-        <div class="right">LINK <span class="blink">&#9632;</span> STANDBY</div>
+    <header class="topbar">
+        <div class="logo">FISH<span class="dot">_</span>INDY</div>
+        <div class="status" id="status-line"></div>
     </header>
 
-<pre class="banner">
- ######    ###     ######  ######## ##    ## ######## ########
-##    ##  ## ##   ##    ##    ##    ###   ## ##          ##
-##       ##   ##  ##          ##    ####  ## ##          ##
-##      ##     ##  ######     ##    ## ## ## ######      ##
-##      #########       ##    ##    ##  #### ##          ##
-##    ## ##     ## ##    ##    ##    ##   ### ##          ##
- ######  ##     ##  ######     ##    ##    ## ########    ##
-</pre>
+    <section class="center">
+        <img src="/assets/castnet_2tone.png" alt="CastNET" class="hero-logo">
 
-    <section class="boot" id="boot"></section>
+        <p class="subtitle" id="subtitle-line">Indianapolis &rarr; Bloomington &rarr; Chattanooga &rarr; Satellite Beach</p>
 
-    <div class="prompt-row">
-        <span class="prompt-label">guest@fishindy:<span class="host">~</span>$&nbsp;</span>
-        <input type="text" class="prompt-input" id="cmd" autocomplete="off" autocapitalize="off" spellcheck="false" autofocus>
-        <span class="cursor"></span>
-    </div>
+        <nav class="nodes">
+            <a class="node" href="https://castnet.live" target="_blank" rel="noopener">CASTNET</a>
+            <a class="node" href="https://instagram.com/fish_indy" target="_blank" rel="noopener">INSTAGRAM</a>
+            <a class="node" href="#" data-locked onclick="openLocked('family'); return false;">FAMILY</a>
+            <a class="node" href="#" data-locked onclick="openLocked('archive'); return false;">ARCHIVE</a>
+        </nav>
+    </section>
 
-    <footer class="footer">
-        &#9632; TYPE "help" FOR COMMAND LIST &middot; ESC CLEARS BUFFER
+    <footer class="coords">
+        <div id="coords-line">LAT 28.1761&deg; N &middot; LON 80.5901&deg; W</div>
+        <div class="hint"></div>
     </footer>
 
 </main>
 
-<script>
-// ==================== MATRIX RAIN ====================
-(function matrixRain() {
-    const c = document.getElementById('matrix');
-    const ctx = c.getContext('2d');
-    let W, H, cols, drops;
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$+-*/=%\"'#&_(),.;:?!\\|{}<>[]^~";
-
-    function resize() {
-        W = c.width = window.innerWidth;
-        H = c.height = window.innerHeight;
-        cols = Math.floor(W / 14);
-        drops = Array(cols).fill(0).map(() => Math.random() * -50);
-    }
-    window.addEventListener('resize', resize);
-    resize();
-
-    function draw() {
-        ctx.fillStyle = 'rgba(0,0,0,0.08)';
-        ctx.fillRect(0, 0, W, H);
-        ctx.font = '14px "IBM Plex Mono", monospace';
-        ctx.fillStyle = '#33ff33';
-        for (let i = 0; i < cols; i++) {
-            const ch = chars.charAt(Math.floor(Math.random() * chars.length));
-            const x = i * 14;
-            const y = drops[i] * 18;
-            ctx.fillText(ch, x, y);
-            if (y > H && Math.random() > 0.975) drops[i] = 0;
-            drops[i]++;
-        }
-    }
-    setInterval(draw, 55);
-})();
-
-// ==================== BOOT SEQUENCE ====================
-const boot = document.getElementById('boot');
-
-const BOOT_LINES = [
-    { t: 'CASTNET GATEWAY v5.0.0 (kernel 6.1.0-fishindy)', d: 0 },
-    { t: 'Copyright (c) 2026 fishindy.com &middot; All access is logged.', d: 60, dim: true },
-    { t: '', d: 40 },
-    { t: '<span class="tag">[  OK  ]</span> mounting /dev/mesh0', d: 120 },
-    { t: '<span class="tag">[  OK  ]</span> loading node registry ... 5 domains', d: 100 },
-    { t: '<span class="tag">[  OK  ]</span> starting fleet discovery loop', d: 120 },
-    { t: '<span class="tag">[  OK  ]</span> attaching media ingest &middot; FISHMTX online', d: 110 },
-    { t: '<span class="tag">[  OK  ]</span> gillnet ledger &middot; 142,884 objects indexed', d: 100 },
-    { t: '<span class="tag">[ <span class="amber">WARN</span> ]</span> unrecognized visitor &middot; no trust token', d: 180 },
-    { t: '<span class="tag">[ <span class="amber">WARN</span> ]</span> device fingerprint not in registry', d: 120 },
-    { t: '<span class="tag">[ <span class="red">FAIL</span> ]</span> automatic trust denied', d: 150 },
-    { t: '', d: 60 },
-    { t: '> This is the front door of a private operations network.', d: 100 },
-    { t: '> You are not blocked &mdash; but you were not invited either.', d: 100, dim: true },
-    { t: '> The door is here. The key is elsewhere.', d: 120, dim: true },
-    { t: '', d: 60 },
-    { t: '> Type <span class="ok">help</span> to see what you can do from here.', d: 80 }
-];
-
-let bootIdx = 0;
-function bootNext() {
-    if (bootIdx >= BOOT_LINES.length) return;
-    const line = BOOT_LINES[bootIdx++];
-    const el = document.createElement('div');
-    el.className = 'line' + (line.dim ? ' dim' : '');
-    el.innerHTML = line.t || '&nbsp;';
-    boot.appendChild(el);
-    boot.scrollTop = boot.scrollHeight;
-    setTimeout(bootNext, line.d);
-}
-setTimeout(bootNext, 250);
-
-// ==================== COMMAND INTERPRETER ====================
-const input = document.getElementById('cmd');
-let historyBuf = [];
-let histIdx = -1;
-
-function echo(text, cls) {
-    const el = document.createElement('div');
-    el.className = 'line' + (cls ? ' ' + cls : '');
-    el.innerHTML = text;
-    boot.appendChild(el);
-    boot.scrollTop = boot.scrollHeight;
-}
-
-function echoPrompt(cmd) {
-    echo('<span class="dim">guest@fishindy:~$</span> ' + escapeHTML(cmd));
-}
-
-function escapeHTML(s) {
-    return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
-}
-
-const COMMANDS = {
-    help: () => {
-        echo('available commands:');
-        echo('  <span class="ok">help</span>          &middot; this list');
-        echo('  <span class="ok">whoami</span>        &middot; identify yourself to this node');
-        echo('  <span class="ok">about</span>         &middot; what is this');
-        echo('  <span class="ok">contact</span>       &middot; reach the operator');
-        echo('  <span class="ok">onboard</span>       &middot; apply for access');
-        echo('  <span class="ok">ls</span>            &middot; list available nodes');
-        echo('  <span class="ok">cat <page></span>    &middot; navigate to a node');
-        echo('  <span class="ok">clear</span>         &middot; wipe this buffer');
-    },
-    whoami: () => {
-        echo('<span class="dim">you are: an unknown visitor.</span>');
-        echo('<span class="dim">ip:        </span>' + '<span class="ok">[redacted for your privacy]</span>');
-        echo('<span class="dim">trust:     </span>' + '<span class="red">NONE</span>');
-        echo('<span class="dim">session:   </span>' + '<span class="amber">temporary</span>');
-        echo('');
-        echo('<span class="dim">to gain access, apply at</span> <span class="ok">/onboard</span>');
-    },
-    about: () => {
-        echo('CASTNET is a managed livestream production network for');
-        echo('tournament anglers. Broadcast, sponsor management, content');
-        echo('delivery, and AI ops \u2014 all from the water.');
-        echo('');
-        echo('This terminal is the gateway.');
-        echo('If you know where to look, you\'ll find the rest.');
-        echo('If you don\'t \u2014 you weren\'t meant to.');
-    },
-    contact: () => {
-        echo('operator:  <span class="ok">brody@fishindy.com</span>');
-        echo('telegram:  <span class="ok">@brody_mcw</span>');
-        echo('response:  <span class="dim">within 24h, usually sooner</span>');
-    },
-    onboard: () => {
-        echo('<span class="amber">> redirecting to /onboard ...</span>');
-        setTimeout(() => { window.location.href = '/onboard'; }, 400);
-    },
-    ls: () => {
-        echo('drwxr-xr-x  .');
-        echo('drwxr-xr-x  ..');
-        echo('-rw-r--r--  <span class="ok">onboard</span>        &middot; apply for access');
-        echo('-rw-r--r--  <span class="ok">privacy</span>        &middot; privacy policy');
-        echo('-rw-r--r--  <span class="ok">terms</span>          &middot; terms of service');
-        echo('');
-        echo('<span class="dim">// linked nodes:</span>');
-        echo('lrwxr-xr-x  <span class="ok">me</span>             &middot; me.fishindy.com');
-        echo('lrwxr-xr-x  <span class="amber">bro</span>            &middot; bro.fishindy.com <span class="red">[LOCKED]</span>');
-        echo('lrwxr-xr-x  <span class="amber">control</span>        &middot; control.fishindy.com <span class="red">[PIN REQUIRED]</span>');
-    },
-    cat: (arg) => {
-        const routes = {
-            onboard:    '/onboard',
-            marketing:  '/marketing',
-            privacy:    '/privacy',
-            terms:      '/terms',
-            me:         'https://me.fishindy.com',
-            inviteonly: 'https://inviteonly.fishindy.com',
-            bro:        'https://bro.fishindy.com',
-            control:    'https://control.fishindy.com',
-        };
-        if (!arg) { echo('<span class="red">cat: missing target. try \'ls\'.</span>'); return; }
-        const route = routes[arg.toLowerCase()];
-        if (!route) { echo('<span class="red">cat: ' + escapeHTML(arg) + ': no such node.</span>'); return; }
-
-        // Check if locked
-        if (arg.toLowerCase() === 'bro') {
-            echo('<span class="red">[ FAIL ] bro.fishindy.com requires authentication.</span>');
-            echo('<span class="dim">> apply at /onboard to request access.</span>');
-            return;
-        }
-        if (arg.toLowerCase() === 'control') {
-            echo('<span class="amber">> PIN gate active. access via control.fishindy.com directly.</span>');
-            setTimeout(() => { window.open(route, '_blank'); }, 500);
-            return;
-        }
-
-        echo('<span class="amber">> navigating to ' + escapeHTML(route) + ' ...</span>');
-        setTimeout(() => {
-            if (route.startsWith('http')) window.open(route, '_blank');
-            else window.location.href = route;
-        }, 400);
-    },
-    clear: () => { boot.innerHTML = ''; },
-};
-
-// legacy aliases
-COMMANDS['?'] = COMMANDS.help;
-COMMANDS['man'] = COMMANDS.help;
-COMMANDS['sudo'] = () => echo('<span class="amber">nice try.</span>');
-COMMANDS['rm'] = () => echo('<span class="amber">permission denied.</span>');
-COMMANDS['exit'] = () => echo('<span class="dim">this session cannot be closed from here.</span>');
-COMMANDS['quit'] = COMMANDS.exit;
-COMMANDS['cd'] = () => echo('<span class="dim">you are already where you need to be.</span>');
-COMMANDS['ping'] = (arg) => {
-    if (!arg) { echo('<span class="red">ping: missing host.</span>'); return; }
-    echo('<span class="dim">PING ' + escapeHTML(arg) + ' (0.0.0.0): 56 data bytes</span>');
-    echo('<span class="dim">64 bytes: icmp_seq=0 ttl=64 time=0.042ms</span>');
-    echo('<span class="ok">' + escapeHTML(arg) + ' is alive</span>');
-};
-COMMANDS['fish'] = () => {
-    echo('<span class="ok">&#128031; fish on.</span>');
-    echo('<span class="dim">// that\'s what it\'s always been about.</span>');
-};
-
-function run(raw) {
-    const line = raw.trim();
-    echoPrompt(line);
-    if (!line) return;
-    historyBuf.push(line);
-    histIdx = historyBuf.length;
-    const [cmd, ...rest] = line.split(/\s+/);
-    const fn = COMMANDS[cmd.toLowerCase()];
-    if (!fn) {
-        echo('<span class="red">' + escapeHTML(cmd) + ': command not found. type \'help\'.</span>');
-        return;
-    }
-    fn(rest.join(' '));
-}
-
-input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-        const v = input.value;
-        input.value = '';
-        run(v);
-    } else if (e.key === 'Escape') {
-        input.value = '';
-    } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        if (historyBuf.length === 0) return;
-        histIdx = Math.max(0, histIdx - 1);
-        input.value = historyBuf[histIdx] || '';
-    } else if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        if (historyBuf.length === 0) return;
-        histIdx = Math.min(historyBuf.length, histIdx + 1);
-        input.value = historyBuf[histIdx] || '';
-    }
-});
-
-// Keep focus on input — any click refocuses
-document.addEventListener('click', (e) => {
-    if (e.target.tagName !== 'A') input.focus();
-});
-document.addEventListener('keydown', (e) => {
-    if (document.activeElement !== input && e.key.length === 1) input.focus();
-});
-</script>
-<script src="/assets/tracker.js" defer></script>
-
-<!-- Fixed footer — visible on first load for Google OAuth branding review -->
-<div style="position:fixed;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:rgba(0,0,0,0.85);border-top:1px solid #1a7a1a;z-index:999;font-size:11px">
-    <img src="/assets/castnet_logo.png" alt="CastNET" style="height:22px;opacity:0.8">
-    <div style="display:flex;gap:16px">
-        <a href="/privacy" style="color:#1a7a1a;text-decoration:none;font-family:'IBM Plex Mono',monospace;letter-spacing:1px">PRIVACY POLICY</a>
-        <a href="/terms" style="color:#1a7a1a;text-decoration:none;font-family:'IBM Plex Mono',monospace;letter-spacing:1px">TERMS OF SERVICE</a>
+<!-- ===== Locked modal ===== -->
+<div class="modal" id="modal" onclick="if(event.target===this)closeLocked()">
+    <div class="modal-box">
+        <button class="x" onclick="closeLocked()">&times;</button>
+        <div class="modal-label" id="m-label">ACCESS RESTRICTED</div>
+        <div class="modal-title" id="m-title">FAMILY</div>
+        <div class="modal-body" id="m-body">
+            <p>This wing isn't open yet.</p>
+            <p style="margin-top:10px">The <span class="hl">family</span> node holds private archives, shared memories, and a few names only the people who belong there will recognize.</p>
+            <p style="margin-top:10px">Come back soon.</p>
+            <code>&gt; fingerprint required &middot; not yet issued</code>
+        </div>
     </div>
 </div>
+
+<script>
+// Silent tracking — no visible output, just data collection for future use
+const CTX = (function() {
+    let visit = 1;
+    try {
+        visit = parseInt(localStorage.getItem('fi_visits') || '0', 10) + 1;
+        localStorage.setItem('fi_visits', String(visit));
+        if (!localStorage.getItem('fi_first_seen'))
+            localStorage.setItem('fi_first_seen', String(Date.now()));
+    } catch(e) {}
+    return { visit, geo: null };
+})();
+
+// Geo — silently update coords with viewer's real location. No visible copy.
+(async function enrichGeo(){
+    try {
+        const ctrl = new AbortController();
+        setTimeout(() => ctrl.abort(), 2500);
+        const r = await fetch('https://ipapi.co/json/', { signal: ctrl.signal });
+        if (!r.ok) return;
+        const g = await r.json();
+        if (!g || !g.city) return;
+        CTX.geo = g;
+        const coords = document.getElementById('coords-line');
+        if (coords && typeof g.latitude === 'number' && typeof g.longitude === 'number') {
+            const lat = Math.abs(g.latitude).toFixed(4);
+            const lon = Math.abs(g.longitude).toFixed(4);
+            const ns = g.latitude >= 0 ? 'N' : 'S';
+            const ew = g.longitude >= 0 ? 'E' : 'W';
+            coords.innerHTML = 'LAT ' + lat + '&deg; ' + ns
+                + ' &middot; LON ' + lon + '&deg; ' + ew
+                + ' &middot; ' + (g.city || '').toUpperCase();
+        }
+    } catch(e) {}
+})();
+
+// ===== Locked modal =====
+const LOCKED = {
+    family: {
+        label: 'ACCESS RESTRICTED',
+        title: 'FAMILY',
+        html: `
+            <p>This wing isn't open yet.</p>
+            <p style="margin-top:10px">The <span class="hl">family</span> node holds private archives, shared memories, and a few names only the people who belong there will recognize.</p>
+            <p style="margin-top:10px">Come back soon.</p>
+            <code>&gt; fingerprint required &middot; not yet issued</code>
+        `
+    },
+    archive: {
+        label: 'SEALED',
+        title: 'ARCHIVE',
+        html: `
+            <p>Old tournaments. Older stories. Photos that don't exist on social.</p>
+            <p style="margin-top:10px">The <span class="hl">archive</span> is staying offline until it's ready. It won't be pretty. It'll be real.</p>
+            <code>&gt; unlock &middot; pending</code>
+        `
+    }
+};
+function openLocked(key) {
+    const data = LOCKED[key];
+    if (!data) return;
+    document.getElementById('m-label').textContent = data.label;
+    document.getElementById('m-title').textContent = data.title;
+    document.getElementById('m-body').innerHTML = data.html;
+    document.getElementById('modal').classList.add('show');
+}
+function closeLocked() {
+    document.getElementById('modal').classList.remove('show');
+}
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeLocked();
+});
+
+// ===== Starfield / particle drift =====
+const canvas = document.getElementById('stars');
+const ctx = canvas.getContext('2d');
+let W, H, stars;
+
+function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    const count = Math.min(140, Math.floor((W * H) / 12000));
+    stars = [];
+    for (let i = 0; i < count; i++) {
+        stars.push({
+            x: Math.random() * W,
+            y: Math.random() * H,
+            r: Math.random() * 1.2 + 0.2,
+            vx: (Math.random() - 0.5) * 0.08,
+            vy: (Math.random() - 0.5) * 0.05,
+            a: Math.random() * 0.6 + 0.1
+        });
+    }
+}
+window.addEventListener('resize', resize);
+resize();
+
+function draw() {
+    ctx.clearRect(0, 0, W, H);
+    for (const s of stars) {
+        s.x += s.vx; s.y += s.vy;
+        if (s.x < 0) s.x = W; if (s.x > W) s.x = 0;
+        if (s.y < 0) s.y = H; if (s.y > H) s.y = 0;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0,255,136,${s.a * 0.55})`;
+        ctx.fill();
+    }
+    requestAnimationFrame(draw);
+}
+draw();
+
+// ===== Easter egg: type 'help' =====
+let buf = '';
+document.addEventListener('keydown', (e) => {
+    if (e.key.length !== 1) return;
+    buf = (buf + e.key.toLowerCase()).slice(-8);
+    if (buf.endsWith('help')) {
+        openLocked('archive');
+        buf = '';
+    }
+    if (buf.endsWith('family')) {
+        openLocked('family');
+        buf = '';
+    }
+});
+</script>
 
 </body>
 </html>
