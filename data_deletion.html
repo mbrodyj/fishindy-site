@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data Deletion — CastNET</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;max-width:800px;margin:40px auto;padding:0 20px;line-height:1.6;color:#222}
+h1{color:#0a5;border-bottom:2px solid #0a5;padding-bottom:10px}
+h2{color:#333;margin-top:30px}
+a{color:#0a5}
+.meta{color:#666;font-size:14px}
+.code-box{background:#f5f5f5;padding:12px 16px;border-radius:8px;font-family:monospace;margin:12px 0;border:1px solid #ddd}
+.steps{counter-reset:step}
+.steps li{counter-increment:step;margin:12px 0;padding-left:8px}
+.steps li::marker{content:counter(step) ". ";font-weight:bold;color:#0a5}
+</style>
+</head>
+<body>
+
+<a href="/"><img src="/assets/castnet_logo.png" alt="CastNET" style="height:40px;margin-bottom:20px"></a>
+
+<h1>Data Deletion Request</h1>
+<p class="meta"><strong>CastNET / FishINDY</strong> — Operated by Brody McWilliams</p>
+
+<h2>How to Request Data Deletion</h2>
+
+<p>If you've used CastNET through Facebook Login and want your data deleted, you have two options:</p>
+
+<h3>Option 1: Automatic (via Facebook)</h3>
+<p>Go to your <a href="https://www.facebook.com/settings?tab=applications" target="_blank">Facebook Settings → Apps and Websites</a>, find CastNET, and click "Remove." Facebook will automatically notify us to delete your data.</p>
+
+<h3>Option 2: Email Request</h3>
+<p>Send an email to <a href="mailto:brody@fishindy.com">brody@fishindy.com</a> with the subject line <strong>"Data Deletion Request"</strong> and include:</p>
+<ol class="steps">
+<li>Your name</li>
+<li>The email address associated with your account</li>
+<li>Which platforms you connected (Facebook, Instagram, YouTube)</li>
+</ol>
+
+<p>We will process your request within <strong>30 days</strong> and confirm via email when your data has been deleted.</p>
+
+<h2>What Data We Store</h2>
+<ul>
+<li><strong>OAuth tokens</strong> — encrypted access tokens for posting to your connected social accounts. Deleted immediately on request.</li>
+<li><strong>Brand profile</strong> — your display name, brand colors, and style preferences. Deleted on request.</li>
+<li><strong>Content queue</strong> — any pending posts or clips queued for your accounts. Deleted on request.</li>
+<li><strong>Activity logs</strong> — timestamps of when content was posted or actions were taken. Anonymized within 30 days of request.</li>
+</ul>
+
+<p>We do <strong>not</strong> store passwords, payment information, or personal messages.</p>
+
+<h2>Confirmation Code</h2>
+<p>If you were redirected here from Facebook after submitting a deletion request, your confirmation code is:</p>
+<div class="code-box" id="code-display">
+<script>
+const params = new URLSearchParams(window.location.search);
+const code = params.get('code');
+document.getElementById('code-display').textContent = code ? code : 'No confirmation code provided. If you submitted a request via Facebook, please check your Facebook settings for status.';
+</script>
+</div>
+
+<p>Save this code — you can reference it if you need to follow up on your deletion request.</p>
+
+<hr style="margin-top:40px;border:none;border-top:1px solid #ddd">
+<p style="font-size:13px;color:#888">
+<a href="/privacy">Privacy Policy</a> · <a href="/terms">Terms of Service</a> · Contact: <a href="mailto:brody@fishindy.com">brody@fishindy.com</a>
+</p>
+
+</body>
+</html>

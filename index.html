@@ -496,5 +496,15 @@ document.addEventListener('keydown', (e) => {
 });
 </script>
 <script src="/assets/tracker.js" defer></script>
+
+<!-- Fixed footer — visible on first load for Google OAuth branding review -->
+<div style="position:fixed;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:rgba(0,0,0,0.85);border-top:1px solid #1a7a1a;z-index:999;font-size:11px">
+    <img src="/assets/castnet_logo.png" alt="CastNET" style="height:22px;opacity:0.8">
+    <div style="display:flex;gap:16px">
+        <a href="/privacy" style="color:#1a7a1a;text-decoration:none;font-family:'IBM Plex Mono',monospace;letter-spacing:1px">PRIVACY POLICY</a>
+        <a href="/terms" style="color:#1a7a1a;text-decoration:none;font-family:'IBM Plex Mono',monospace;letter-spacing:1px">TERMS OF SERVICE</a>
+    </div>
+</div>
+
 </body>
 </html>
